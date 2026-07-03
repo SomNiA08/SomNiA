@@ -3,6 +3,12 @@
 역이식의 착지점이다. `/retro`에서 승인된 개정은 반드시 여기에 한 항목씩 쌓인다.
 형식: `## vX.Y — YYYY-MM-DD · <출처 프로젝트>` + 변경 내용 + 근거(회고 경로).
 
+## v0.3 — 2026-07-03 · harness-kit (역이식 안전장치)
+- /retro 승인 단계에 적용 범위 분류 추가: 킷 공통 / 프로젝트 전용 (애매하면 전용이 기본값)
+  — 프로젝트 특화 규칙이 킷을 오염시키는 경로 차단
+- /retro에 원본 킷 git 커밋·푸시 단계 내장: 1 개정 = 1 커밋 = 자동 백업, force-push 금지,
+  복구는 git revert로만 (근거: 원본 유실 우려에 대한 사용자 질문, 2026-07-03)
+
 ## v0.2 — 2026-07-03 · harness-kit (0단계 골격)
 - 훅 4종 추가 (.claude/hooks/): session-start(재주입) · pre-tool-use(append-only+rounds 불변) ·
   post-tool-use(AI-slop·증거부실 경고) · stop-retro-guard(회고 없는 종료 차단, attempts 3회 상한)
