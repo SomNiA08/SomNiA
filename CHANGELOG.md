@@ -3,6 +3,11 @@
 역이식의 착지점이다. `/retro`에서 승인된 개정은 반드시 여기에 한 항목씩 쌓인다.
 형식: `## vX.Y — YYYY-MM-DD · <출처 프로젝트>` + 변경 내용 + 근거(회고 경로).
 
+## v0.8 — 2026-07-04 · ai-worklog cycle 1 (킷 공통 역이식)
+- AGENTS §2(발언·기록 규칙)에 추가: 확정되지 않은 판정·수치의 log.md·state 기록 금지 —
+  내부 기록도 발화(SOUL §1), 판정·실측 수치는 확정 시점에만
+  (근거: ai-worklog retro/2026-07-04-retro.md 실패 5 — 확정 전 "PASS"와 1차본 수치가 append-only log에 영구 기록됨)
+
 ## v0.7 — 2026-07-04 · ai-worklog cycle 1 (킷 공통 역이식)
 - CLAUDE §4(훅 배선)에 추가: 하네스 커맨드를 동명 Skill·플러그인 호출로 대체 금지 —
   절차 원본은 .claude/commands/*.md, 출처 경로가 프로젝트 밖이면 중단 후 커맨드 파일 직접 Read
