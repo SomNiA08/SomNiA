@@ -61,8 +61,9 @@ async function main() {
     return ok();
   }
 
-  // ── Bash: 보호 파일·불변 디렉토리를 파괴하는 명령 차단 ──
-  if (tool === "Bash") {
+  // ── Bash/PowerShell: 보호 파일·불변 디렉토리를 파괴하는 명령 차단 ──
+  // (v0.11: Bash만 감시하면 PowerShell 도구가 벽2를 우회 — academy-ops cycle 1 실측 역이식)
+  if (tool === "Bash" || tool === "PowerShell") {
     const cmd = String(ti.command || "");
     const touchesProt = new RegExp(PROT_RE).test(cmd) || IMM_CMD_RE.test(cmd);
     if (!touchesProt) return ok();
@@ -73,11 +74,15 @@ async function main() {
     const teeTruncate   = new RegExp(`\\btee\\b(?!\\s+-a\\b)[^|;&]*${TGT}`).test(cmd);       // tee 는 기본 truncate
     const sedInPlace    = new RegExp(`\\bsed\\b[^|;&]*\\s-i[^|;&]*${TGT}`).test(cmd);
     const moveOver      = new RegExp(`\\b(mv|cp)\\b[^|;&]*${TGT}[^|;&]*(?:$|[|;&])`).test(cmd);
+    // v0.11: PowerShell cmdlet 파괴 경로 — POSIX 이름만 검사하면 Remove-Item 등이 통과 (실측).
+    // 개행은 문장 경계([^|;&\n]) — 여러 줄에 걸친 오탐 차단. Add-Content(append)는 허용.
+    const psRemove      = new RegExp(`\\b(Remove-Item|Clear-Content|del|erase|ri)\\b[^|;&\\n]*${TGT}`, "i").test(cmd);
+    const psOverwrite   = new RegExp(`\\b(Set-Content|Out-File|Move-Item|Copy-Item|New-Item)\\b(?![^|;&\\n]*-Append)[^|;&\\n]*${TGT}`, "i").test(cmd);
 
-    if (truncRedirect || removeLike || teeTruncate || sedInPlace || moveOver) {
+    if (truncRedirect || removeLike || teeTruncate || sedInPlace || moveOver || psRemove || psOverwrite) {
       return deny(
-        `Bash 로 소스 계층(${PROTECTED.join(" / ")} / ${IMM_LABEL})을 덮어쓰기·삭제하려 합니다. 금지 — ` +
-        `추가는 Edit 또는 '>>'·'tee -a' 로만. (벽2 append-only)`
+        `${tool} 로 소스 계층(${PROTECTED.join(" / ")} / ${IMM_LABEL})을 덮어쓰기·삭제하려 합니다. 금지 — ` +
+        `추가는 Edit 또는 '>>'·'tee -a'·'Add-Content' 로만. (벽2 append-only)`
       );
     }
     return ok();

@@ -3,6 +3,14 @@
 역이식의 착지점이다. `/retro`에서 승인된 개정은 반드시 여기에 한 항목씩 쌓인다.
 형식: `## vX.Y — YYYY-MM-DD · <출처 프로젝트>` + 변경 내용 + 근거(회고 경로).
 
+## v0.11 — 2026-07-05 · academy-ops cycle 1 (킷 공통 역이식 · 훅 코드 동반)
+- CLAUDE §4(훅 배선)에 추가: 훅 매처를 Bash에만 걸지 마라 — 환경의 모든 셸 도구를 같은 검사에,
+  cmdlet 대칭 패턴 + 셸별 예외, 변경 시 deny·통과 재검증 의무
+- 코드 동반 반영: settings.json PreToolUse 매처에 PowerShell 추가 · pre-tool-use.mjs에
+  PS 전용 패턴(psRemove/psOverwrite, -Append 예외, 개행=문장 경계) + deny 메시지 도구명 동적화
+- 재검증 실측: deny 2건(Remove-Item·Set-Content → rounds/) · 통과 1건(Add-Content log.md) — 2026-07-05
+  (근거: academy-ops retro/2026-07-05-retro.md 실패 5 — Remove-Item이 벽2 통과 실측)
+
 ## v0.10 — 2026-07-05 · academy-ops cycle 1 (킷 공통 역이식)
 - CLAUDE §4(훅 배선)에 추가: 파괴 패턴 검사의 평면 매칭 금지 — 실행 구조 앵커 · 개행=문장 경계 ·
   데이터 오탐은 알려진 한계로 명시 · 오탐 시 표준 우회는 임시 파일 + append만
