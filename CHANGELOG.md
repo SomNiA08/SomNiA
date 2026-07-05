@@ -3,6 +3,16 @@
 역이식의 착지점이다. `/retro`에서 승인된 개정은 반드시 여기에 한 항목씩 쌓인다.
 형식: `## vX.Y — YYYY-MM-DD · <출처 프로젝트>` + 변경 내용 + 근거(회고 경로).
 
+## v0.16 — 2026-07-05 · HANDOFF W3 (구조 리팩터 · 킷 공통)
+- 벽2 훅을 3층으로 분리: `engine.mjs`(공용 로직 · 전 함대 바이트 동일 · 해시 감사 대상) +
+  `harness.config.json`(프로젝트 상수 protected/immutableDirs/appendableDirs/mutableDirs) +
+  `project-walls.mjs`(프로젝트 고유 벽 · 선택). `pre-tool-use.mjs`는 엔진 호출 얇은 셸.
+- 목적: 공통 로직+상수 혼재로 인한 드리프트 차단(3벌 105·105·136줄 → engine 1벌 바이트 동일).
+  공통 벽 개정은 이제 engine.mjs 복사 1회로 전 함대 전파 — F1(PowerShell 미전파) 같은 형제 누락 재발 방지.
+- 불변 디렉토리 의미 분리: immutableDirs(Write·Edit 금지) vs appendableDirs(Write 금지·Edit append 허용).
+- 검증: 리포별 23케이스 동작-보존 매트릭스 판정 불일치 0/23(킷·sam·ai-worklog), engine 해시 3벌 동일,
+  ai-worklog 벽5 전이 가드 deny/통과(PASS·EXHAUSTED·REVISE) 재확인. 근거: HANDOFF-2026-07-05 W3.
+
 ## v0.15 — 2026-07-05 · academy-ops cycle 2 (킷 공통 역이식)
 - CLAUDE §3(권한)에 추가: 에이전트 레지스트리의 등록 상태는 리포가 아니라 세션의 속성 —
   이전 세션의 log 등록/미등록 기록을 배분 근거로 재사용 금지, 커맨드 진입 시 세션마다 새로 확인

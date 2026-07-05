@@ -1,0 +1,7 @@
+{
+  "_comment": "harness-kit 본원 배선 상수. 벽2 엔진(engine.mjs)이 읽는다. 이식 시 이 파일만 고친다.",
+  "protected": ["SOUL.md", "AGENTS.md", "CLAUDE.md", "log.md", "CHANGELOG.md"],
+  "immutableDirs": ["rounds"],
+  "appendableDirs": [],
+  "mutableDirs": ["wiki", "report", "retro", "state", "graph"]
+}
