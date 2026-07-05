@@ -3,6 +3,12 @@
 역이식의 착지점이다. `/retro`에서 승인된 개정은 반드시 여기에 한 항목씩 쌓인다.
 형식: `## vX.Y — YYYY-MM-DD · <출처 프로젝트>` + 변경 내용 + 근거(회고 경로).
 
+## v0.14 — 2026-07-05 · academy-ops cycle 2 (킷 공통 역이식)
+- CLAUDE §2-1(이동 가능성)에 추가: 커밋 && 체인 금지 — add·commit 분리 실행, 커밋은 직후 git log
+  해시로만 증명, gitignore 대상 경로(state/ 등) add 인자 금지
+  (근거: academy-ops retro/2026-07-05-cycle2-retro.md 실패 3 — state.json add 실패가 && 체인의
+  확정 커밋을 통째로 생략, 발견이 status 확인 재량에 의존했음)
+
 ## v0.13 — 2026-07-05 · academy-ops cycle 2 (킷 공통 역이식)
 - CLAUDE §2-1(이동 가능성)에 추가: 커밋되지 않은 걸음은 걸음 완료가 아니다 — 걸음의 원자 단위 =
   산출·기록(state/log) + 커밋, 세션 시작 시 git status로 미커밋 잔재 확인·복구 커밋 의무
