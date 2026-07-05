@@ -3,6 +3,12 @@
 역이식의 착지점이다. `/retro`에서 승인된 개정은 반드시 여기에 한 항목씩 쌓인다.
 형식: `## vX.Y — YYYY-MM-DD · <출처 프로젝트>` + 변경 내용 + 근거(회고 경로).
 
+## v0.19 — 2026-07-05 · HANDOFF W6 (TOP-WALLS 재주입 · 킷 공통)
+- `TOP-WALLS.md` 신설(전 함대 바이트 동일): 상위 벽 10개 요약. session-start 훅이 SOUL 직후 재주입(1,500자 cap).
+- 근거(N3): SOUL 전문은 재주입되나 회고가 낳은 운영 벽(git 기강 등)은 재주입 목록에 없었다 — 컴팩트 후
+  약한 모델이 다시 안 읽는 사각지대. 짧고 강한 벽 목록은 약한 모델이 훨씬 잘 지킨다.
+- 검증: `node .claude/hooks/session-start.mjs` 출력에 TOP-WALLS 섹션 포함(3 리포). 근거: HANDOFF W6.
+
 ## v0.18 — 2026-07-05 · HANDOFF W5 (걸음 diff 게이트 · 킷 공통)
 - `.claude/checks/step-diff.mjs` 신설(spec-check 스타일): `git status --porcelain --untracked-files=all`로
   "선언한 산출 경로 + state/ + log.md" 밖의 변경을 탐지 → exit 1 + 위반 목록. 인자 없으면 usage + exit 2.

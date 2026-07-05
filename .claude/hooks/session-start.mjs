@@ -18,6 +18,7 @@ const read = (f) => {
 const cap = (s, n = 16000) => (s && s.length > n ? s.slice(0, n) + "\n…(이하 생략 — 원문은 파일 참조)" : s);
 
 const soul = cap(read("SOUL.md"));
+const topWalls = cap(read("TOP-WALLS.md"), 1500); // 상위 벽 요약 (HANDOFF W6 — 약한 모델용 재주입)
 const wikiIndex = cap(read("wiki/index.md"), 8000);
 const stateRaw = read("state/state.json");
 let state = null;
@@ -31,6 +32,8 @@ if (soul) {
 } else {
   ctx += "## ⚠️ SOUL.md 없음 — 헌법 누락. 진행 전 확인하라.\n\n";
 }
+// TOP-WALLS — 상위 벽 요약 (SOUL 직후, 약한 모델용 짧고 강한 재주입 · HANDOFF W6/N3)
+if (topWalls) ctx += "## TOP-WALLS (최상위 벽 요약 — 전문은 SOUL·CLAUDE·AGENTS)\n\n" + topWalls + "\n\n";
 ctx += "> 세부 규칙은 AGENTS.md, 배선은 CLAUDE.md.\n\n";
 
 // 2) 회의 상태 + 다음 걸음
