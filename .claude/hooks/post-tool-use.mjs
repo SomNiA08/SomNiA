@@ -5,7 +5,10 @@
 // (2) 증거 부실 감지 — wiki/evidence 가 verdict:pass 인데 실제 명령 출력(```)이 없으면 경고.
 // PostToolUse 는 이미 실행된 뒤라 차단은 못 하므로, 다음 턴 교정용 additionalContext 만 준다.
 // 출처: gec-prd post-tool-use.mjs 포팅. 절대 throw 금지.
+// (HANDOFF W4: 경고 발생 시 사건 장부(incidents.jsonl)에도 한 줄 남긴다 — 자동 회고 재료.)
 // =====================================================================
+import { appendIncident } from "./ledger.mjs";
+const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
 const SLOP = [
   /\bcertainly\b/i, /\babsolutely\b/i, /\bas an ai\b/i, /i'?d be happy to/i,
@@ -23,6 +26,7 @@ async function main() {
   try { data = await readInput(); } catch { return done(); }
 
   const ti = (data && data.tool_input) || {};
+  const tool = data.tool_name || "";
   const path = String(ti.file_path || ti.notebook_path || "").replace(/\\/g, "/");
   const content = collectContent(ti);
 
@@ -40,6 +44,7 @@ async function main() {
   }
 
   if (notes.length) {
+    try { appendIncident(root, { hook: "post-tool-use", tool, path, action: "warn", reason: notes.join(" / ").slice(0, 200) }); } catch {}
     try {
       process.stdout.write(JSON.stringify({
         hookSpecificOutput: { hookEventName: "PostToolUse", additionalContext: "⚠️ " + notes.join("  /  ") + "  (벽3)" },

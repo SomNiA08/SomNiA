@@ -7,8 +7,9 @@
 // 비대상 세션은 파일 검사 1~2회로 즉시 통과(fast no-op). 절대 throw 금지.
 // =====================================================================
 
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, appendFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
+import { appendIncident } from "./ledger.mjs";
 
 const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const SENTINEL = join(root, "state", ".retro-attempts");
@@ -28,7 +29,12 @@ async function main() {
 
   let attempts = 0;
   try { attempts = JSON.parse(readFileSync(SENTINEL, "utf8")).attempts || 0; } catch {}
-  if (attempts >= 3) return ok(); // 3회 실패 → 포기·통과 (sentinel 유지 = 재루프 방지, /retro 완료 시 삭제됨)
+  if (attempts >= 3) { // 3회 실패 → 포기·통과 (sentinel 유지 = 재루프 방지, /retro 완료 시 삭제됨)
+    // 조용한 포기 금지 — SOUL §6이 무력화되는 순간을 장부·log.md에 남긴다 (HANDOFF W4).
+    try { appendIncident(root, { hook: "stop-retro-guard", action: "give-up", reason: "회고 미작성 3회 — 종료 허용(SOUL §6 무력화)" }); } catch {}
+    try { appendFileSync(join(root, "log.md"), `\n- ${new Date().toISOString().slice(0, 10)} ⚠️ stop-guard 3회 포기 — 회고 없이 종료 허용됨 (SOUL §6 · 다음 /retro는 incidents.jsonl을 먼저 볼 것)\n`, "utf8"); } catch {}
+    return ok();
+  }
 
   try { writeFileSync(SENTINEL, JSON.stringify({ attempts: attempts + 1 })); } catch {}
   try {

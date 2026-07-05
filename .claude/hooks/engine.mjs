@@ -12,9 +12,11 @@
 import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { appendIncident } from "./ledger.mjs";
 
 const HOOK_DIR = dirname(fileURLToPath(import.meta.url));
 const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+let CUR = { tool: "", path: "" }; // deny() 사건 기록용 컨텍스트 (runEngine 진입 시 설정)
 
 const DEFAULTS = {
   protected: ["SOUL.md", "AGENTS.md", "CLAUDE.md", "log.md", "CHANGELOG.md"],
@@ -35,6 +37,11 @@ export async function runEngine() {
   try { data = await readInput(); } catch { return ok(); } // 입력 못 읽으면 통과(가용성)
   const cfg = loadConfig();
 
+  const tool = data.tool_name || "";
+  const ti = (data && data.tool_input) || {};
+  const path = norm(ti.file_path);
+  CUR = { tool, path }; // 이후 deny()가 사건 장부에 남길 컨텍스트
+
   // ── 프로젝트 고유 벽 먼저 (있으면). 로드·실행 실패는 조용히 통과 — 훅 크래시=누수 방지 ──
   try {
     const pw = join(HOOK_DIR, "project-walls.mjs");
@@ -47,9 +54,6 @@ export async function runEngine() {
     }
   } catch {}
 
-  const tool = data.tool_name || "";
-  const ti = (data && data.tool_input) || {};
-  const path = norm(ti.file_path);
   const PROT_RE = "(?:" + cfg.protected.map((f) => f.replace(/\.md$/, "")).join("|") + ")\\.md";
   const overwriteDirs = [...cfg.immutableDirs, ...cfg.appendableDirs];
 
@@ -117,6 +121,7 @@ function inDirs(p, dirs) { return dirs && dirs.length ? new RegExp(`(^|/)(?:${di
 function existsAt(p) { try { return existsSync(isAbsolute(p) ? p : join(root, p)); } catch { return false; } }
 function ok() { process.exit(0); }
 function deny(reason) {
+  try { appendIncident(root, { hook: "pre-tool-use", tool: CUR.tool, path: CUR.path, action: "deny", reason: String(reason).slice(0, 200) }); } catch {}
   try {
     process.stdout.write(JSON.stringify({
       hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: reason },

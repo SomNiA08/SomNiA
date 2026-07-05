@@ -3,6 +3,14 @@
 역이식의 착지점이다. `/retro`에서 승인된 개정은 반드시 여기에 한 항목씩 쌓인다.
 형식: `## vX.Y — YYYY-MM-DD · <출처 프로젝트>` + 변경 내용 + 근거(회고 경로).
 
+## v0.17 — 2026-07-05 · HANDOFF W4 (사건 장부 + 자동 회고 배선 · 킷 공통)
+- `ledger.mjs` 신설(전 함대 바이트 동일): 훅이 차단·경고·가드포기 시 `state/incidents.jsonl`에 append.
+  기록 지점 3곳: pre-tool-use deny(engine) · post-tool-use warn · stop-retro-guard 3회 포기(+`log.md` 기록).
+- `/retro` 개정 2건: (1-1) incidents.jsonl 집계를 회고 실패 후보 1순위로 · (승인단계) "이 벽을 코드·테스트로
+  승격 가능한가 + 전용이라도 추출할 공통 패턴이 있는가" 판정 추가(F2 재발 방지) · (마무리) 장부 비우기.
+- `incidents.jsonl`은 state/ 로컬 전용(gitignore) — state.json과 동일 취급, 회고 재료용 텔레메트리.
+- 검증: 3 기록지점 실측(deny·warn·give-up log.md append), 동작-보존 매트릭스 0/23(3 리포). 근거: HANDOFF W4.
+
 ## v0.16 — 2026-07-05 · HANDOFF W3 (구조 리팩터 · 킷 공통)
 - 벽2 훅을 3층으로 분리: `engine.mjs`(공용 로직 · 전 함대 바이트 동일 · 해시 감사 대상) +
   `harness.config.json`(프로젝트 상수 protected/immutableDirs/appendableDirs/mutableDirs) +
