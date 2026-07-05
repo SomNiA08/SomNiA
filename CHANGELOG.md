@@ -3,6 +3,13 @@
 역이식의 착지점이다. `/retro`에서 승인된 개정은 반드시 여기에 한 항목씩 쌓인다.
 형식: `## vX.Y — YYYY-MM-DD · <출처 프로젝트>` + 변경 내용 + 근거(회고 경로).
 
+## v0.18 — 2026-07-05 · HANDOFF W5 (걸음 diff 게이트 · 킷 공통)
+- `.claude/checks/step-diff.mjs` 신설(spec-check 스타일): `git status --porcelain --untracked-files=all`로
+  "선언한 산출 경로 + state/ + log.md" 밖의 변경을 탐지 → exit 1 + 위반 목록. 인자 없으면 usage + exit 2.
+- 에이전트 정체성은 훅 입력에 없어 훅으로 역할 경계를 못 막는다(F3) — 걸음 후 git 대조로 침범을 잡는다.
+- `/meeting-round` 배선: 발언 배분 직후 `step-diff rounds/` 게이트(4-1), exit 1이면 REVISE.
+- 검증: exit 0/1/2 픽스처 실측(선언 파일 통과 · 미선언 파일 위반 · state 자동허용). 근거: HANDOFF W5.
+
 ## v0.17 — 2026-07-05 · HANDOFF W4 (사건 장부 + 자동 회고 배선 · 킷 공통)
 - `ledger.mjs` 신설(전 함대 바이트 동일): 훅이 차단·경고·가드포기 시 `state/incidents.jsonl`에 append.
   기록 지점 3곳: pre-tool-use deny(engine) · post-tool-use warn · stop-retro-guard 3회 포기(+`log.md` 기록).
