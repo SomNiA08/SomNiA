@@ -15,13 +15,16 @@
 
 | 역할군 | 배치 원칙 | 해당 에이전트 (함대 전반) | 현재 값 |
 |---|---|---|---|
-| **판정** | 가용한 것 중 **최강** | `devils-advocate` · `doc-critic` · `critic-reader` · `riot-evaluator` · `retrospector` · verifier류 | ⬜ (예: `opus`) |
-| **생산-외부발행** | 가용한 것 중 **최강** (발행물=천장) | `scribe` · `doc-writer` · `writer-threads/linkedin/cafe` · `english-editor` | ⬜ (예: `opus`) |
-| **생산-내부** | **중간** 등급 (비용 절약 지점) | `panelist-*` · `moderator` · specialist류 | ⬜ (예: `sonnet`) |
-| **기록·정리** | **중간** 등급 | `archivist` · `scribe`의 기록 부분 · librarian류 | ⬜ (예: `sonnet`) |
+| **판정** | 가용한 것 중 **최강** | `devils-advocate` · `doc-critic` · `critic-reader` · `riot-evaluator` · `retrospector` · verifier류 | `opus` |
+| **생산-외부발행** | 가용한 것 중 **최강** (발행물=천장) | `scribe` · `doc-writer` · `writer-threads/linkedin/cafe` · `english-editor` | `opus` |
+| **생산-내부** | **중간** 등급 (비용 절약 지점) | `panelist-*` · `moderator` · specialist류 | `opus` |
+| **기록·정리** | **중간** 등급 | `archivist` · `scribe`의 기록 부분 · librarian류 | `opus` |
 
-> 값 예시는 가용 모델 ID(`opus`/`sonnet`/`haiku` 또는 정확한 model-id). 다음 주 가용 모델이
-> 정해지면 "현재 값" ⬜를 채운다. Fable이 있는 동안엔 판정·생산-외부 역할군에 Fable을 두는 것이 최선.
+> **현재 값 (2026-07-05 사용자 확정): 전 역할군 `opus`.** 단일 모델 국면 — 아직 비용 분화 없이
+> 전부 Opus로 통일한다. 값 `opus`는 별칭(최신 Opus로 해석) — 특정 버전 고정이 필요하면 정확한
+> model-id(예: `claude-opus-4-8`)로 바꾼다.
+> **다음 분화 지점**: 더 싼 모델이 가용해지면 **생산-내부·기록·정리**를 그쪽으로 내려 비용을 아낀다
+> (판정·생산-외부는 최강 유지 — 검증·발행 천장은 낮추지 않는다). 그때 이 표만 고치고 §적용 방법을 다시 훑는다.
 
 ## 적용 방법 (현재 값을 채운 뒤)
 
