@@ -8,15 +8,15 @@
 | 종류 | 누가 트리거 | 무엇 |
 |---|---|---|
 | **커맨드** | 사람/CronJob | `/meeting <안건>`(회의 시작) · `/meeting-round`(라운드 1회) · `/retro`(회고) |
-| **스킬** | 모델(에이전트) | `agenda-build`(안건 구성) · `report-compile`(레포트 합성) — 재사용 절차 |
-| **훅** | Claude Code(자동) | `session-start`(재주입) · `pre-tool-use`(덮어쓰기 차단) · `post-tool-use`(slop 경고) · `stop-retro-guard`(회고 미완 차단) |
+| **스킬·검사** | 모델·커맨드 | `checks/step-diff.mjs`(걸음 산출 경계 게이트 · W5) — 재사용 절차 (스킬 자체는 현재 없음; 안정화 후 패키징) |
+| **훅** | Claude Code(자동) | `session-start`(재주입+TOP-WALLS) · `pre-tool-use`(engine 기반 덮어쓰기 차단) · `post-tool-use`(slop 경고) · `stop-retro-guard`(회고 미완 차단) — 차단·경고·포기는 `ledger`(사건 장부)에 자동 기록 |
 | **에이전트** | 커맨드가 배분 | `moderator`·`panelist-*`·`devils-advocate`·`scribe`·`retrospector` |
 | **MCP** | 에이전트(규약 하에) | 기본 없음 — 필요해질 때 §1 규약에 따라 등록 표에 올린 뒤 사용 |
 | **환경/권한** | 설정 | Windows · Node 훅 · 에이전트별 tools 제한 (아래 §2·§3) |
 | **CronJob** | 스케줄러 | 정기 회의·정기 회고 예약 (아래 §6) |
 
-> 컨텍스트 유지 규약: 세션 시작·재개·압축 때 `session-start` 훅이 SOUL 핵심 + 안건 + 상태를
-> **자동 재주입**한다. 이것이 컨텍스트 유지의 유일한 공식 통로다. (플러그인화: 위 요소가 안정되면
+> 컨텍스트 유지 규약: 세션 시작·재개·압축 때 `session-start` 훅이 SOUL 핵심 + **TOP-WALLS(상위 벽 요약)** +
+> 안건 + 상태를 **자동 재주입**한다. 이것이 컨텍스트 유지의 유일한 공식 통로다. (플러그인화: 위 요소가 안정되면
 > command+skill+hook+agent 묶음을 플러그인 1개로 패키징한다 — 5요소가 다 있어야 하는 건 아니다.)
 
 ## 외부 발행처 등록 표 (빈칸 ⬜ = 해당 발행 금지 → 로컬 파일로만 — SOUL §3)
@@ -107,6 +107,10 @@
   Out-File·Move-Item 등) 패턴과 셸별 예외(`-Append` 등)를 대칭으로 둔다. 셸 도구·패턴을 바꿨으면
   deny·통과 양쪽 케이스를 재검증하기 전까지 벽이 있다고 말하지 마라 (SOUL §1).
   (v0.11 — 출처: academy-ops cycle 1 실패 5, 훅 코드·매처 동반 반영)
+- ⛔ **`engine.mjs`(벽2 공용 로직)를 프로젝트별로 고치지 마라.** 프로젝트 차이는 `harness.config.json`(상수)와
+  `project-walls.mjs`(고유 벽)로만 낸다 — engine 은 전 함대 바이트 동일이어야 공통 벽 개정이 복사 1회로
+  전파되고, F1(PowerShell 미전파) 같은 형제 누락이 재발하지 않는다(해시 감사 대상). 상수로 표현 안 되는
+  프로젝트 고유 로직은 project-walls 로 분리한다. (v0.16 — 출처: HANDOFF W3, 훅 3층 분리)
 
 ## 5. 절대 금지 — 상태 · 루프
 
@@ -124,11 +128,16 @@
 
 ## 7. 배선 사실 (참고 — DO)
 
-- 훅 연결: `.claude/settings.json` — SessionStart=startup/resume/clear/compact(재주입) ·
-  PreToolUse=`Write|Edit|MultiEdit|Bash`(append-only + rounds/ 불변) · PostToolUse(slop·증거부실 경고) ·
-  Stop(회고 가드 — `status=report_done`인데 회고 없으면 차단, attempts 3회 상한 후 포기·통과).
+- 훅 구조(3층 · HANDOFF W3): `.claude/hooks/engine.mjs`(벽2 공용 로직 · 전 함대 바이트 동일 · 프로젝트별 수정 금지) +
+  `harness.config.json`(프로젝트 상수 protected/immutableDirs/appendableDirs/mutableDirs) + `ledger.mjs`(사건 장부) +
+  진입점 4(session-start·pre-tool-use·post-tool-use·stop-retro-guard). 고유 벽은 `project-walls.mjs`(선택 · 킷엔 없음).
+- 훅 연결: `.claude/settings.json` — SessionStart=startup/resume/clear/compact(재주입: SOUL+TOP-WALLS+상태) ·
+  PreToolUse=`Write|Edit|MultiEdit|Bash|PowerShell`(engine: append-only + rounds/ 불변) · PostToolUse(slop·증거부실 경고 +장부) ·
+  Stop(회고 가드 — `status=report_done`인데 회고 없으면 차단, attempts 3회 상한 후 포기·통과 시 `log.md`·장부 기록).
+- 걸음 게이트: `.claude/checks/step-diff.mjs`(HANDOFF W5) — 커맨드가 에이전트 배분 직후 실행, 선언 산출 경로 밖 변경이면 exit 1(REVISE).
 - 훅은 절대 throw 하지 않는다(크래시=통과=누수). 작동 점검: `node .claude/hooks/session-start.mjs` → 재주입 JSON.
-- 상태 파일: `state/state.json`(cycle·round·status·votes·report_path·retro_path) — 매 걸음 저장.
+- 상태 파일: `state/state.json`(cycle·round·status·votes·report_path·retro_path) · `state/incidents.jsonl`(사건 장부 — 로컬 전용/gitignore) — 매 걸음 저장.
 - 산출 구조: `rounds/`(발언 원본, 불변) · `wiki/`(정리) · `report/`(레포트) · `retro/`(회고) · `log.md`(한 줄 기록).
+- 모델 배선(HANDOFF W7): `MODELS.md`(역할군별 모델 단일 원천) — 에이전트 frontmatter `model:`은 이 표를 따른다, 모델 참조 하드코딩 금지.
 - 에이전트 정의: `.claude/agents/*.md` — Role·페르소나·tools 제한 포함.
 - 역이식: `/retro`가 승인된 개정안을 이 프로젝트 + 원본 킷(형제 디렉토리 중 README 첫 줄이 `# harness-kit`인 폴더) + 양쪽 `CHANGELOG.md`에 동시 반영.
