@@ -15,3 +15,4 @@
 - 2026-07-06 model-gym 첫 실전 캘리브레이션(sonnet, Agent 도구 실제 격리 호출 + opus 별도 채점): 3과제×3회차 치명 0/9. 부가 함대 role 3종 실측 17/18 PASS(ai-worklog 1건 REVISE — writer 발명). 직전 "haiku 테스트"는 자기채점 허구였음을 정정 (상세 CHANGELOG)
 - 2026-07-06 MODELS.md 첫 분화: 판정·생산-외부발행=opus 유지, 생산-내부·기록·정리=sonnet 하향 — 함대 4리포 에이전트 20종 frontmatter에 model: 명시 추가, haiku는 미검증으로 배치 보류 (상세 CHANGELOG)
 - 2026-07-06 haiku 실전 캘리브레이션: 18회차 중 6회차 치명(집계왜곡·미확인 단정승격·근거없는 결과발명) — sonnet(0/18) 대비 뚜렷한 차이. 어느 역할군에도 미배치 확정, MODELS.md 현재 값 무변 (상세 CHANGELOG)
+- 2026-07-06 v0.24 ai-worklog cycle 3 회고 역이식 수신: MODELS.md 캘리브레이션 절에 "모델 테스트 자기 역할극+자기채점 금지" 벽 추가 — haiku 자기채점 허위보고 사건 재발 방지 (상세 CHANGELOG)
