@@ -5,6 +5,8 @@
 // decision:block 으로 일감을 되넘긴다 → 모델이 /retro 를 실행하게 만든다.
 // 무한루프 방지: attempts 3회 상한 (강사 아카이버 설계 §8의 sentinel 패턴).
 // 비대상 세션은 파일 검사 1~2회로 즉시 통과(fast no-op). 절대 throw 금지.
+// v0.28: 차단 메시지에 v0.26 벽("안내만 하고 종료 금지") 직결 — 커맨드 종료 보고의
+//        "다음 걸음 /retro" 안내 후 대기가 이 가드 발동의 실측 주원인 (invest-desk cycle 1 실패 4).
 // =====================================================================
 
 import { readFileSync, writeFileSync, existsSync, appendFileSync } from "node:fs";
@@ -43,7 +45,9 @@ async function main() {
       reason:
         "이 사이클의 레포트는 나왔는데 회고가 없습니다 (SOUL §6: 회고 없이 사이클을 끝내지 마라). " +
         "멈추지 말고 /retro 를 실행하세요 — retrospector 가 retro/<날짜>-retro.md 를 쓰고, " +
-        "개정안 승인 절차 후 state.retro_path 를 갱신하면 종료가 허용됩니다.",
+        "개정안 승인 절차 후 state.retro_path 를 갱신하면 종료가 허용됩니다. " +
+        "('다음 걸음 /retro' 안내만 쓰고 사용자 대기로 멈추는 것이 이 차단의 주원인입니다 — " +
+        "안내가 아니라 같은 흐름에서 착수가 규칙입니다, CLAUDE §4 v0.26.)",
     }));
   } catch {}
   process.exit(0);
