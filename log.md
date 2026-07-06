@@ -11,3 +11,4 @@
 - 2026-07-06 model-gym 신설 (Fable 예약 작업 완료): 골든 과제 3종(회의/콘텐츠/문서) — 고정 입력 + Fable 정답본 + 치명/권고 채점표. 새 모델 캘리브레이션 사이클의 측정 도구 (somnia-hub FLEET-STRATEGY §6-2 · ROADMAP model-gym 항목 이행)
 - 2026-07-06 MODELS.md 배치표에 invest-desk 역할군 등재 (risk-devil→판정 · analyst→생산-내부 · journal-keeper→기록) — 4벌 전파, 해시 E160471095E3 동일 (함대 전수 검수 권고 R1)
 - 2026-07-06 model-gym 정정: 정답본 결함 3(달력 오류·선착순 날조·글자수 허위) + 채점표 모호 2 + 픽스처 1 — 독립 적대 검수 발견, 캘리브레이션 0회 시점 수리 (상세 CHANGELOG)
+- 2026-07-06 model-gym 격리 정정: 측정 세션을 정답본 있는 폴더에서 여는 결함(§6-3) → 빈 폴더 격리 실행으로 — paperthin 검수(mandela) 발견, 채점 주체 "다른 모델" 명시 (상세 CHANGELOG)
