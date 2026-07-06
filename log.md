@@ -17,3 +17,4 @@
 - 2026-07-06 haiku 실전 캘리브레이션: 18회차 중 6회차 치명(집계왜곡·미확인 단정승격·근거없는 결과발명) — sonnet(0/18) 대비 뚜렷한 차이. 어느 역할군에도 미배치 확정, MODELS.md 현재 값 무변 (상세 CHANGELOG)
 - 2026-07-06 v0.24 ai-worklog cycle 3 회고 역이식 수신: MODELS.md 캘리브레이션 절에 "모델 테스트 자기 역할극+자기채점 금지" 벽 추가 — haiku 자기채점 허위보고 사건 재발 방지 (상세 CHANGELOG)
 - 2026-07-06 Fable 함대 검수 정정: MODELS.md haiku 상태 드리프트 수리("아직 실측 없음"→"실측 불합격·전 역할군 미배치", 3리포 전파·해시 재단일) + 본 로그 07-06 분화 항목의 "20종"은 오기 — 실측 24종(킷6·sam8·ai-worklog6·invest4) (상세 CHANGELOG)
+- 2026-07-06 v0.25 캘리브레이션 provenance 기계 게이트 신설(Fable 검수): agent-ledger 훅(호출 장부) + model-gym/runs/ 매니페스트 + audit.ps1 검사[5] 3단 — v0.24 산문 벽의 승격, LEGACY 2벌로 기존 실측 소급 불가 명시, deny/통과 실측 검증 (상세 CHANGELOG)

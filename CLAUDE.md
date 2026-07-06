@@ -134,9 +134,11 @@
 
 - 훅 구조(3층 · HANDOFF W3): `.claude/hooks/engine.mjs`(벽2 공용 로직 · 전 함대 바이트 동일 · 프로젝트별 수정 금지) +
   `harness.config.json`(프로젝트 상수 protected/immutableDirs/appendableDirs/mutableDirs) + `ledger.mjs`(사건 장부) +
-  진입점 4(session-start·pre-tool-use·post-tool-use·stop-retro-guard). 고유 벽은 `project-walls.mjs`(선택 · 킷엔 없음).
+  진입점 5(session-start·pre-tool-use·post-tool-use·stop-retro-guard·agent-ledger). 고유 벽은 `project-walls.mjs`(선택 · 킷엔 없음).
 - 훅 연결: `.claude/settings.json` — SessionStart=startup/resume/clear/compact(재주입: SOUL+TOP-WALLS+상태) ·
   PreToolUse=`Write|Edit|MultiEdit|Bash|PowerShell`(engine: append-only + rounds/ 불변) · PostToolUse(slop·증거부실 경고 +장부) ·
+  PostToolUse=`Agent|Task`(agent-ledger: 서브에이전트 호출 장부 → `state/agent-calls.jsonl` 로컬 전용 — 캘리브레이션
+  provenance의 기계 증거, 매니페스트 생성·대조는 model-gym/README "provenance 매니페스트" 절) ·
   Stop(회고 가드 — `status=report_done`인데 회고 없으면 차단, attempts 3회 상한 후 포기·통과 시 `log.md`·장부 기록).
 - 걸음 게이트: `.claude/checks/step-diff.mjs`(HANDOFF W5) — 커맨드가 에이전트 배분 직후 실행, 선언 산출 경로 밖 변경이면 exit 1(REVISE).
 - 훅은 절대 throw 하지 않는다(크래시=통과=누수). 작동 점검: `node .claude/hooks/session-start.mjs` → 재주입 JSON.
