@@ -3,6 +3,16 @@
 역이식의 착지점이다. `/retro`에서 승인된 개정은 반드시 여기에 한 항목씩 쌓인다.
 형식: `## vX.Y — YYYY-MM-DD · <출처 프로젝트>` + 변경 내용 + 근거(회고 경로).
 
+## v0.27 — 2026-07-06 · invest-desk cycle 1 (slop 패턴 고유명사 오탐 예외 · 킷 공통)
+- CLAUDE §4: "slop 패턴을 대소문자 무시 단어경계 정규식만으로 두지 마라 — 고유명사·인용
+  개체명을 warn 대상에서 제외하는 예외를 붙인다" 추가.
+- 배경: invest-desk cycle 1에서 post-tool-use slop 패턴(\belevate\b, /i)이 고유명사
+  "Uber Elevate"(우버 옛 항공택시 사업부명)에 3회 오탐(facts 브리프 · 회고 파일 · CHANGELOG
+  근거 인용). warn이라 무해했으나 오탐 반복은 경고 무감각화(alarm fatigue)로 진짜 slop 경고를
+  무력화한다. post-tool-use 훅은 전 함대 공통 자산이라 킷 공통.
+- [승격 후보: post-tool-use.mjs 패턴 개정 — 완전 기계화 가능] 문서 벽 먼저, 패턴 개정은 별도 걸음.
+- 근거: invest-desk retro/2026-07-06-retro.md 실패 5. 사용자 승인: 2026-07-06 (범위: 킷 공통).
+
 ## v0.26 — 2026-07-06 · invest-desk cycle 1 (report_done 안내 종료 금지 · 킷 공통)
 - CLAUDE §4: "report_done 상태에서 커맨드가 '다음 걸음 /retro'를 안내만 하고 턴을 종료하지 마라 —
   종료 보고는 '회고로 이어감'을 명시하고 같은 흐름에서 /retro를 착수" 추가.
