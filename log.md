@@ -8,3 +8,4 @@
 - 2026-07-05 v0.9 이동 가능성 3벽 추가 + C:\work 하드코딩 경로 4곳을 형제 디렉토리 탐색 방식으로 교체
 - 2026-07-05 v0.10~v0.15 academy-ops cycle 1·2 회고 킷 공통 역이식 수신 (훅 평면매칭·PowerShell 대칭·미등록 폴백·커밋 원자성·&&금지·레지스트리 세션속성)
 - 2026-07-05 v0.16~v0.20 HANDOFF W3~W7: 훅 3층 분리(engine 바이트동일+config+ledger)·자동 회고 장부·걸음 diff 게이트·TOP-WALLS 재주입·모델 배치표(MODELS.md, 전 역할군 Opus) — 23케이스 동작보존 0/23
+- 2026-07-06 model-gym 신설 (Fable 예약 작업 완료): 골든 과제 3종(회의/콘텐츠/문서) — 고정 입력 + Fable 정답본 + 치명/권고 채점표. 새 모델 캘리브레이션 사이클의 측정 도구 (somnia-hub FLEET-STRATEGY §6-2 · ROADMAP model-gym 항목 이행)
