@@ -16,3 +16,4 @@
 - 2026-07-06 MODELS.md 첫 분화: 판정·생산-외부발행=opus 유지, 생산-내부·기록·정리=sonnet 하향 — 함대 4리포 에이전트 20종 frontmatter에 model: 명시 추가, haiku는 미검증으로 배치 보류 (상세 CHANGELOG)
 - 2026-07-06 haiku 실전 캘리브레이션: 18회차 중 6회차 치명(집계왜곡·미확인 단정승격·근거없는 결과발명) — sonnet(0/18) 대비 뚜렷한 차이. 어느 역할군에도 미배치 확정, MODELS.md 현재 값 무변 (상세 CHANGELOG)
 - 2026-07-06 v0.24 ai-worklog cycle 3 회고 역이식 수신: MODELS.md 캘리브레이션 절에 "모델 테스트 자기 역할극+자기채점 금지" 벽 추가 — haiku 자기채점 허위보고 사건 재발 방지 (상세 CHANGELOG)
+- 2026-07-06 Fable 함대 검수 정정: MODELS.md haiku 상태 드리프트 수리("아직 실측 없음"→"실측 불합격·전 역할군 미배치", 3리포 전파·해시 재단일) + 본 로그 07-06 분화 항목의 "20종"은 오기 — 실측 24종(킷6·sam8·ai-worklog6·invest4) (상세 CHANGELOG)
