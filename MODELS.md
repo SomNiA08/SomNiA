@@ -17,14 +17,19 @@
 |---|---|---|---|
 | **판정** | 가용한 것 중 **최강** | `devils-advocate` · `doc-critic` · `critic-reader` · `riot-evaluator` · `retrospector` · `risk-devil`(invest) · verifier류 | `opus` |
 | **생산-외부발행** | 가용한 것 중 **최강** (발행물=천장) | `scribe` · `doc-writer` · `writer-threads/linkedin/cafe` · `english-editor` | `opus` |
-| **생산-내부** | **중간** 등급 (비용 절약 지점) | `panelist-*` · `moderator` · `analyst`(invest) · specialist류 | `opus` |
-| **기록·정리** | **중간** 등급 | `archivist` · `scribe`의 기록 부분 · `journal-keeper`(invest) · librarian류 | `opus` |
+| **생산-내부** | **중간** 등급 (비용 절약 지점) | `panelist-*` · `moderator` · `analyst`(invest) · specialist류 | `sonnet` |
+| **기록·정리** | **중간** 등급 | `archivist` · `scribe`의 기록 부분 · `journal-keeper`(invest) · librarian류 | `sonnet` |
 
-> **현재 값 (2026-07-05 사용자 확정): 전 역할군 `opus`.** 단일 모델 국면 — 아직 비용 분화 없이
-> 전부 Opus로 통일한다. 값 `opus`는 별칭(최신 Opus로 해석) — 특정 버전 고정이 필요하면 정확한
-> model-id(예: `claude-opus-4-8`)로 바꾼다.
-> **다음 분화 지점**: 더 싼 모델이 가용해지면 **생산-내부·기록·정리**를 그쪽으로 내려 비용을 아낀다
-> (판정·생산-외부는 최강 유지 — 검증·발행 천장은 낮추지 않는다). 그때 이 표만 고치고 §적용 방법을 다시 훑는다.
+> **현재 값 (2026-07-06 사용자 확정 — 첫 분화): 판정·생산-외부발행 = `opus`(유지) · 생산-내부·기록·정리 = `sonnet`(하향).**
+> 근거: 2026-07-06 model-gym 실전 캘리브레이션(킷 커밋 `2a404cf`) — Agent 도구로 실제 격리 호출한
+> sonnet이 판정류(task-a devil 3종세트)·생산-내부류(task-a panelist/moderator, invest analyst)·
+> 기록류(archivist) 전 항목 치명 0건. **판정·생산-외부발행은 sonnet도 통과했지만 opus로 유지한다** —
+> "가용한 것 중 최강" 정책은 시험 합격 여부가 아니라 항상 최강을 두는 것이 원칙이다(시험은 바닥선
+> 확인용, 승격 근거가 아니다). `haiku`는 아직 실측 없음(이전 세션의 haiku 결과는 자기채점 오류로
+> 허구였음이 드러나 폐기됨) — 다음 분화 후보이나 캘리브레이션 전 배치 금지.
+> 값 `opus`/`sonnet`은 별칭(최신 버전으로 해석) — 특정 버전 고정이 필요하면 정확한 model-id로 바꾼다.
+> **다음 분화 지점**: haiku가 실제 격리 캘리브레이션(Agent 도구 + 별도 모델 채점)을 통과하면
+> 기록·정리부터 그쪽으로 추가 하향 검토. 판정·생산-외부는 계속 최강 유지 — 검증·발행 천장은 낮추지 않는다.
 
 ## 적용 방법 (현재 값을 채운 뒤)
 
