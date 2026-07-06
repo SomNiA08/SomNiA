@@ -12,3 +12,4 @@
 - 2026-07-06 MODELS.md 배치표에 invest-desk 역할군 등재 (risk-devil→판정 · analyst→생산-내부 · journal-keeper→기록) — 4벌 전파, 해시 E160471095E3 동일 (함대 전수 검수 권고 R1)
 - 2026-07-06 model-gym 정정: 정답본 결함 3(달력 오류·선착순 날조·글자수 허위) + 채점표 모호 2 + 픽스처 1 — 독립 적대 검수 발견, 캘리브레이션 0회 시점 수리 (상세 CHANGELOG)
 - 2026-07-06 model-gym 격리 정정: 측정 세션을 정답본 있는 폴더에서 여는 결함(§6-3) → 빈 폴더 격리 실행으로 — paperthin 검수(mandela) 발견, 채점 주체 "다른 모델" 명시 (상세 CHANGELOG)
+- 2026-07-06 model-gym 첫 실전 캘리브레이션(sonnet, Agent 도구 실제 격리 호출 + opus 별도 채점): 3과제×3회차 치명 0/9. 부가 함대 role 3종 실측 17/18 PASS(ai-worklog 1건 REVISE — writer 발명). 직전 "haiku 테스트"는 자기채점 허구였음을 정정 (상세 CHANGELOG)
