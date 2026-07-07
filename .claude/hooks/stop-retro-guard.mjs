@@ -7,6 +7,10 @@
 // 비대상 세션은 파일 검사 1~2회로 즉시 통과(fast no-op). 절대 throw 금지.
 // v0.28: 차단 메시지에 v0.26 벽("안내만 하고 종료 금지") 직결 — 커맨드 종료 보고의
 //        "다음 걸음 /retro" 안내 후 대기가 이 가드 발동의 실측 주원인 (invest-desk cycle 1 실패 4).
+// v0.30: sentinel 사이클 결속 — {cycle,attempts}로 저장하고 state.cycle 불일치(다른 사이클 잔재 ·
+//        legacy 무-cycle sentinel) 시 attempts 0으로 재무장. 포기된 사이클의 sentinel(attempts≥3 유지)이
+//        다음 사이클 가드를 선제 무력화하던 구멍 봉합 — 2026-07-06 LoL v0.5 훅 수선("sentinel을
+//        cycle 단위로 리셋")에서 발견·수리된 구멍의 킷 3층 아키텍처 이식.
 // =====================================================================
 
 import { readFileSync, writeFileSync, existsSync, appendFileSync } from "node:fs";
@@ -29,8 +33,9 @@ async function main() {
   const retroPath = String(state.retro_path || "");
   if (retroPath && existsSync(isAbsolute(retroPath) ? retroPath : join(root, retroPath))) return ok(); // 회고 완료 → 통과
 
+  const cur = state.cycle ?? null; // sentinel은 이 사이클에만 유효 — cycle 불일치 = 다른 사이클 잔재 → 재무장 (v0.30)
   let attempts = 0;
-  try { attempts = JSON.parse(readFileSync(SENTINEL, "utf8")).attempts || 0; } catch {}
+  try { const s = JSON.parse(readFileSync(SENTINEL, "utf8")); if (s && s.cycle === cur) attempts = s.attempts || 0; } catch {}
   if (attempts >= 3) { // 3회 실패 → 포기·통과 (sentinel 유지 = 재루프 방지, /retro 완료 시 삭제됨)
     // 조용한 포기 금지 — SOUL §6이 무력화되는 순간을 장부·log.md에 남긴다 (HANDOFF W4).
     try { appendIncident(root, { hook: "stop-retro-guard", action: "give-up", reason: "회고 미작성 3회 — 종료 허용(SOUL §6 무력화)" }); } catch {}
@@ -38,7 +43,7 @@ async function main() {
     return ok();
   }
 
-  try { writeFileSync(SENTINEL, JSON.stringify({ attempts: attempts + 1 })); } catch {}
+  try { writeFileSync(SENTINEL, JSON.stringify({ cycle: cur, attempts: attempts + 1 })); } catch {}
   try {
     process.stdout.write(JSON.stringify({
       decision: "block",

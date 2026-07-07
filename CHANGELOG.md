@@ -3,6 +3,23 @@
 역이식의 착지점이다. `/retro`에서 승인된 개정은 반드시 여기에 한 항목씩 쌓인다.
 형식: `## vX.Y — YYYY-MM-DD · <출처 프로젝트>` + 변경 내용 + 근거(회고 경로).
 
+## v0.30 — 2026-07-07 · stop-retro-guard sentinel 사이클 결속 (Fable 검수 2차 · 킷 공통)
+- **구멍**: sentinel(`state/.retro-attempts`)이 `{attempts}`만 저장 — 3회 차단 후 **포기된 사이클**이
+  생기면 sentinel은 남는데(/retro 완료 시에만 삭제) cycle 구분이 없어, **다음 사이클의 가드가
+  attempts≥3 상태로 시작해 선제 무력화**됐다. 이후 모든 사이클에서 SOUL §6(회고 없는 종료 차단)이
+  조용히 죽는 구조 — give-up 장부 기록조차 "첫 사이클의 포기" 이후로는 다시 남지 않는다.
+- **수리**: sentinel을 `{cycle,attempts}`로 사이클에 결속 — 로드 시 `state.cycle`(`?? null`)과
+  불일치하면(다른 사이클 잔재 · legacy 무-cycle sentinel 포함) attempts 0으로 **재무장**, 기록 시
+  현재 cycle을 함께 저장. 포기 경로 무변(sentinel 유지 = 같은 사이클 재루프 방지, 새 사이클은
+  cycle 불일치로 자동 재무장 — 그것이 수리다). 절대 throw 금지·기존 동작 전부 보존.
+- **계보**: 2026-07-06 LoL 옛 훅 v0.5 수선("sentinel을 cycle 단위로 리셋")에서 발견·수리된 구멍의
+  킷 3층 엔진 아키텍처 이식 — v0.29 engine 대소문자 회귀와 같은 유형(옛 훅 수정의 미이식) 2건째.
+- **검증**: 임시 CLAUDE_PROJECT_DIR 격리 실측 **7케이스 전부 일치** — 신규 block(a) · 3회 포기+
+  log/장부 기록(b) · **stale sentinel(cycle 1 잔재) 재무장 block(c — 수리 증명, 수리 전엔 조용히
+  통과)** · legacy `{attempts:3}` 재무장(c2) · state 없음(d)/비대상 status(e)/회고 완료(f) 통과.
+  전파: sam·invest-desk·ai-worklog 동판 수신(LoL 제외 — 구 자족형 훅 아키텍처는 자체 수리 완료분),
+  4벌 해시 단일 `82E3947A84D9`. 근거: 2026-07-07 Fable 검수 2차 실측.
+
 ## v0.29 — 2026-07-07 · Fable 검수 이행 (engine 벽2 대소문자 우회 봉합 · 킷 공통)
 - **engine.mjs 대소문자 무시(`i` 플래그) 전면 적용**: Windows FS는 대소문자 비구분이라
   `soul.md`·`Soul.md`(=SOUL.md)·`Rounds/`(=rounds/) 같은 케이스 변형으로 **보호 파일 덮어쓰기·
