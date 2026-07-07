@@ -20,3 +20,4 @@
 - 2026-07-06 v0.25 캘리브레이션 provenance 기계 게이트 신설(Fable 검수): agent-ledger 훅(호출 장부) + model-gym/runs/ 매니페스트 + audit.ps1 검사[5] 3단 — v0.24 산문 벽의 승격, LEGACY 2벌로 기존 실측 소급 불가 명시, deny/통과 실측 검증 (상세 CHANGELOG)
 - 2026-07-07 v0.29 engine 벽2 대소문자 우회 봉합 (Fable 검수) — soul.md·Rounds/ 케이스 변형으로 보호파일 덮어쓰기가 벽을 통과하던 구멍, `i` 플래그 5곳 전면 적용. 차단8·통과6 재검증, 4리포 해시 재단일 17D8ADEE5EE6. W3 리팩터링에 LoL v0.5 수정이 누락됐던 회귀 (상세 CHANGELOG)
 - 2026-07-07 v0.30 stop-retro-guard sentinel 사이클 결속 (Fable 검수 2차) — 포기된 사이클의 sentinel이 다음 사이클 가드를 선제 무력화하던 구멍 봉합(LoL v0.5 "cycle 단위 리셋" 역이식), 격리 실측 7케이스 전부 일치, sam·invest-desk·ai-worklog 전파 4벌 해시 82E3947A84D9 (상세 CHANGELOG)
+- 2026-07-07 v0.31 MODELS.md 별칭 세대교체 벽 (Fable 검수 2차) — 별칭 자동 승급이 캘리브레이션 벽과 모순되는 사각 봉합: 새 세대 해석 시작일 = 새 모델 첫날, 캘리브레이션 통과 전 판정·생산-외부발행 사이클 금지. 4리포 전파(LoL 포함) 5벌 해시 7FBB41DD1F74 (상세 CHANGELOG)
