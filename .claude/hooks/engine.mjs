@@ -8,6 +8,9 @@
 // 공식 스펙: PreToolUse 는 exit 0 + JSON {permissionDecision:"deny"} 로 차단. 절대 throw 금지
 // (훅이 에러로 죽으면 '비차단 에러'로 도구가 통과 = 누수).
 // 출처: harness-kit v0.11(PowerShell 대칭) + ai-worklog 벽5 분리 (HANDOFF W3, 2026-07-05)
+// v0.29(2026-07-07 Fable 검수): 경로·명령 대조를 전부 대소문자 무시(i 플래그)로 — Windows FS는
+//   대소문자 비구분이라 soul.md·Rounds/ 등 케이스 우회로 보호 파일이 덮어써지던 구멍 봉합(실측 회귀).
+//   (LoL 옛 훅 v0.5엔 이 수정이 있었으나 W3 엔진 리팩터링에 누락 → 활성 4리포 동시 노출됐던 것을 복원.)
 // =====================================================================
 import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, join, dirname } from "node:path";
@@ -60,7 +63,7 @@ export async function runEngine() {
   // ── Write: 보호 파일 덮어쓰기 + 불변/append 디렉토리 기존 원본 덮어쓰기 차단 ──
   if (tool === "Write") {
     const base = baseOf(path);
-    if (cfg.protected.includes(base) && !inDirs(path, cfg.mutableDirs)) {
+    if (protectedHit(cfg.protected, base) && !inDirs(path, cfg.mutableDirs)) {
       return deny(
         `${base} 은(는) 소스 계층(불변)입니다. Write(덮어쓰기) 금지 — 먼저 Read 후 Edit 로 추가(append). ` +
         `갱신은 가변 계층(${cfg.mutableDirs.join("/")})에서. (벽2 append-only)`
@@ -86,16 +89,16 @@ export async function runEngine() {
     const hasDirs = overwriteDirs.length > 0;
     const dirGroup = hasDirs ? `(?:${overwriteDirs.join("|")})` : null;
     const touchesProt =
-      new RegExp(PROT_RE).test(cmd) ||
-      (hasDirs && new RegExp(`(^|[\\s'"/\\\\])${dirGroup}/`).test(cmd));
+      new RegExp(PROT_RE, "i").test(cmd) ||
+      (hasDirs && new RegExp(`(^|[\\s'"/\\\\])${dirGroup}/`, "i").test(cmd));
     if (!touchesProt) return ok();
 
     const TGT = hasDirs ? `(?:${PROT_RE}|${dirGroup}/)` : `(?:${PROT_RE})`;
-    const truncRedirect = new RegExp(`(^|[^>])>\\s*['"]?[^>|&]*${TGT}`).test(cmd);          // > 는 차단, >> append 는 허용
-    const removeLike    = new RegExp(`\\b(rm|shred|truncate|dd)\\b[^|;&]*${TGT}`).test(cmd);
-    const teeTruncate   = new RegExp(`\\btee\\b(?!\\s+-a\\b)[^|;&]*${TGT}`).test(cmd);       // tee 는 기본 truncate
-    const sedInPlace    = new RegExp(`\\bsed\\b[^|;&]*\\s-i[^|;&]*${TGT}`).test(cmd);
-    const moveOver      = new RegExp(`\\b(mv|cp)\\b[^|;&]*${TGT}[^|;&]*(?:$|[|;&])`).test(cmd);
+    const truncRedirect = new RegExp(`(^|[^>])>\\s*['"]?[^>|&]*${TGT}`, "i").test(cmd);      // > 는 차단, >> append 는 허용
+    const removeLike    = new RegExp(`\\b(rm|shred|truncate|dd)\\b[^|;&]*${TGT}`, "i").test(cmd);
+    const teeTruncate   = new RegExp(`\\btee\\b(?!\\s+-a\\b)[^|;&]*${TGT}`, "i").test(cmd);   // tee 는 기본 truncate
+    const sedInPlace    = new RegExp(`\\bsed\\b[^|;&]*\\s-i[^|;&]*${TGT}`, "i").test(cmd);
+    const moveOver      = new RegExp(`\\b(mv|cp)\\b[^|;&]*${TGT}[^|;&]*(?:$|[|;&])`, "i").test(cmd);
     // PowerShell cmdlet 파괴 경로 — POSIX 이름만 검사하면 Remove-Item 등이 통과 (킷 v0.11).
     // 개행 문장 경계([^|;&\n])로 여러 줄 오탐 차단. Add-Content(append)는 허용.
     const psRemove      = new RegExp(`\\b(Remove-Item|Clear-Content|del|erase|ri)\\b[^|;&\\n]*${TGT}`, "i").test(cmd);
@@ -117,7 +120,8 @@ export async function runEngine() {
 // ---- helpers (절대 throw 금지) ----
 function norm(p) { return String(p || "").replace(/\\/g, "/"); }
 function baseOf(p) { return norm(p).split("/").pop(); }
-function inDirs(p, dirs) { return dirs && dirs.length ? new RegExp(`(^|/)(?:${dirs.join("|")})/`).test(norm(p)) : false; }
+function protectedHit(list, base) { const b = String(base).toLowerCase(); return list.some((f) => String(f).toLowerCase() === b); } // Windows FS 대소문자 비구분 (v0.29)
+function inDirs(p, dirs) { return dirs && dirs.length ? new RegExp(`(^|/)(?:${dirs.join("|")})/`, "i").test(norm(p)) : false; }
 function existsAt(p) { try { return existsSync(isAbsolute(p) ? p : join(root, p)); } catch { return false; } }
 function ok() { process.exit(0); }
 function deny(reason) {
