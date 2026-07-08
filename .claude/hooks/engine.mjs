@@ -11,6 +11,9 @@
 // v0.29(2026-07-07 Fable 검수): 경로·명령 대조를 전부 대소문자 무시(i 플래그)로 — Windows FS는
 //   대소문자 비구분이라 soul.md·Rounds/ 등 케이스 우회로 보호 파일이 덮어써지던 구멍 봉합(실측 회귀).
 //   (LoL 옛 훅 v0.5엔 이 수정이 있었으나 W3 엔진 리팩터링에 누락 → 활성 4리포 동시 노출됐던 것을 복원.)
+// v0.33(2026-07-08 ai-worklog cycle 4): Bash 파괴패턴을 이름표 배열로 — truncRedirect 문자클래스가
+//   `;`(문장 구분자)를 빠뜨려(`[^>|&]*`) `2>/dev/null; ls <보호디렉>/` 류 읽기전용 명령이 오탐 차단되던 것을
+//   `[^>|;&]*`로 형제 패턴과 대칭화. deny 사유에 매칭 패턴명 병기(사후 분류). cycle 2 실패1의 SOUL §6 재발 봉합.
 // =====================================================================
 import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, join, dirname } from "node:path";
@@ -94,21 +97,27 @@ export async function runEngine() {
     if (!touchesProt) return ok();
 
     const TGT = hasDirs ? `(?:${PROT_RE}|${dirGroup}/)` : `(?:${PROT_RE})`;
-    const truncRedirect = new RegExp(`(^|[^>])>\\s*['"]?[^>|&]*${TGT}`, "i").test(cmd);      // > 는 차단, >> append 는 허용
-    const removeLike    = new RegExp(`\\b(rm|shred|truncate|dd)\\b[^|;&]*${TGT}`, "i").test(cmd);
-    const teeTruncate   = new RegExp(`\\btee\\b(?!\\s+-a\\b)[^|;&]*${TGT}`, "i").test(cmd);   // tee 는 기본 truncate
-    const sedInPlace    = new RegExp(`\\bsed\\b[^|;&]*\\s-i[^|;&]*${TGT}`, "i").test(cmd);
-    const moveOver      = new RegExp(`\\b(mv|cp)\\b[^|;&]*${TGT}[^|;&]*(?:$|[|;&])`, "i").test(cmd);
-    // PowerShell cmdlet 파괴 경로 — POSIX 이름만 검사하면 Remove-Item 등이 통과 (킷 v0.11).
-    // 개행 문장 경계([^|;&\n])로 여러 줄 오탐 차단. Add-Content(append)는 허용.
-    const psRemove      = new RegExp(`\\b(Remove-Item|Clear-Content|del|erase|ri)\\b[^|;&\\n]*${TGT}`, "i").test(cmd);
-    const psOverwrite   = new RegExp(`\\b(Set-Content|Out-File|Move-Item|Copy-Item|New-Item)\\b(?![^|;&\\n]*-Append)[^|;&\\n]*${TGT}`, "i").test(cmd);
-
-    if (truncRedirect || removeLike || teeTruncate || sedInPlace || moveOver || psRemove || psOverwrite) {
+    // 파괴 패턴을 [이름표, 정규식] 배열로 — 매칭 패턴명을 deny 사유에 넣어 사후 분류를 돕는다 (v0.33 승격).
+    // ⚠ 모든 문자클래스는 문장 구분자 `;` 를 배제해야 한다([^|;&]) — 배제 안 하면 무해한 앞 명령(`2>/dev/null` 등)이
+    //   `;` 를 넘어 뒤 명령의 보호경로까지 삼켜 오탐한다. truncRedirect 가 이 배제를 빠뜨려(`[^>|&]*`) 읽기전용
+    //   `2>/dev/null; ls <보호디렉>/` 가 차단됐다(cycle 2 실패1 → cycle 4 실패A 재발 봉합).
+    const patterns = [
+      ["truncRedirect", `(^|[^>])>\\s*['"]?[^>|;&]*${TGT}`],       // > 는 차단, >> append 는 허용
+      ["removeLike",    `\\b(rm|shred|truncate|dd)\\b[^|;&]*${TGT}`],
+      ["teeTruncate",   `\\btee\\b(?!\\s+-a\\b)[^|;&]*${TGT}`],    // tee 는 기본 truncate
+      ["sedInPlace",    `\\bsed\\b[^|;&]*\\s-i[^|;&]*${TGT}`],
+      ["moveOver",      `\\b(mv|cp)\\b[^|;&]*${TGT}[^|;&]*(?:$|[|;&])`],
+      // PowerShell cmdlet 파괴 경로 — POSIX 이름만 검사하면 Remove-Item 등이 통과 (킷 v0.11).
+      // 개행 문장 경계([^|;&\n])로 여러 줄 오탐 차단. Add-Content(append)는 허용.
+      ["psRemove",      `\\b(Remove-Item|Clear-Content|del|erase|ri)\\b[^|;&\\n]*${TGT}`],
+      ["psOverwrite",   `\\b(Set-Content|Out-File|Move-Item|Copy-Item|New-Item)\\b(?![^|;&\\n]*-Append)[^|;&\\n]*${TGT}`],
+    ];
+    const hit = patterns.find(([, re]) => new RegExp(re, "i").test(cmd));
+    if (hit) {
       const dirLabel = hasDirs ? " / " + overwriteDirs.map((d) => d + "/").join(" / ") : "";
       return deny(
         `${tool} 로 소스 계층(${cfg.protected.join(" / ")}${dirLabel})을 덮어쓰기·삭제하려 합니다. 금지 — ` +
-        `추가는 Edit 또는 '>>'·'tee -a'·'Add-Content' 로만. (벽2 append-only)`
+        `추가는 Edit 또는 '>>'·'tee -a'·'Add-Content' 로만. (벽2 append-only · 매칭 패턴: ${hit[0]})`
       );
     }
     return ok();

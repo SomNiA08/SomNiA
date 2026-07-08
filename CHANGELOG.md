@@ -3,6 +3,23 @@
 역이식의 착지점이다. `/retro`에서 승인된 개정은 반드시 여기에 한 항목씩 쌓인다.
 형식: `## vX.Y — YYYY-MM-DD · <출처 프로젝트>` + 변경 내용 + 근거(회고 경로).
 
+## v0.33 — 2026-07-08 · ai-worklog cycle 4 (킷 공통 · engine 오탐 봉합 · SOUL §6 재발)
+- **사각(왜)**: `engine.mjs`의 Bash 파괴패턴 `truncRedirect`가 문자클래스 `[^>|&]*`로 문장 구분자 `;`를
+  배제하지 않아, 무해한 `2>/dev/null`(stderr 리다이렉트) 뒤 `;`로 이어진 후속 명령의 보호 디렉토리명까지
+  삼켜 오매칭했다. 형제 패턴 4종(removeLike·teeTruncate·sedInPlace·moveOver)은 전부 `[^|;&]`로 `;`를
+  배제하는데 truncRedirect만 누락 — 읽기전용 `2>/dev/null; ls templates/` 류가 차단됐다.
+  **cycle 2 실패 1이 같은 정규식을 지적했으나 산문 벽만 채택하고 [승격 후보](engine 회귀 테스트)를
+  미이행해, cycle 4에서 다른 트리거(`;` 구분자)로 재발한 SOUL §6 케이스.**
+- **수정(무엇)**: truncRedirect `[^>|&]*` → `[^>|;&]*`(형제 패턴과 대칭). + 파괴패턴을 `[이름표,정규식]`
+  배열로 재구성해 deny 사유에 **매칭 패턴명**(`매칭 패턴: truncRedirect` 등) 병기 — cycle 2 [승격 후보]
+  "deny 사유에 패턴명"의 실제 이행(일반 사유문 탓에 사건 사후 분류가 어려웠던 것을 해소).
+- **회귀 검증(실측 · 파일 stdin 직접 주입 5케이스)**: `echo x > SOUL.md`=DENY(truncRedirect)·
+  `2>/dev/null; ls templates/`=ALLOW(봉합)·`echo x >> log.md`=ALLOW(append)·Write `soul.md`=DENY(v0.29 무회귀)·
+  `rm records/x.md`=DENY(removeLike). 전부 기대 일치.
+- 전파: 원본 킷 engine.mjs 동판 + 활성 4벌 해시 재단일 `ADFCCC2ADFBB`(직전 계보 17D8ADEE5EE6) —
+  ai-worklog·invest-desk·sam 동시 갱신, LoL은 engine.mjs 미보유(옛 훅 구조)라 대상 외.
+- 근거: ai-worklog `retro/2026-07-08-retro.md`(cycle 4, 실패 A + 개정안 1 + 메타관측). 출처 프로젝트: ai-worklog. 사용자 승인 2026-07-08.
+
 ## v0.32 — 2026-07-07 · LoL cycle 1 (킷 공통 · 첫 정식 회고 역이식)
 - **사각(왜)**: `SOUL §1`("결과를 본 뒤에 기대값을 정하지 마라")은 토론 **전** acceptance 층위 벽이고,
   `AGENTS §3`은 술어의 관찰 가능성만 요구했다 — 토론 **안에서** 패널이 관측 소표본(예: 2점)에 맞춰
