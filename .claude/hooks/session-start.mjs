@@ -23,6 +23,14 @@ const wikiIndex = cap(read("wiki/index.md"), 8000);
 const stateRaw = read("state/state.json");
 let state = null;
 try { state = stateRaw ? JSON.parse(stateRaw) : null; } catch { state = null; }
+// state.cycle 데싱크 감지 — 커밋된 log.md 의 최신 cycle 번호 (v0.34: gitignored 로컬 state 뒤처짐 경고).
+function maxCommittedCycle() {
+  const log = read("log.md");
+  if (!log) return 0;
+  let mx = 0;
+  for (const m of log.matchAll(/\bcycle\s+(\d+)\b/gi)) { const n = parseInt(m[1], 10); if (n > mx) mx = n; }
+  return mx;
+}
 
 let ctx = "# 🎯 하네스 재주입 (SessionStart 자동 실행)\n\n";
 
@@ -45,6 +53,11 @@ if (state) {
   ctx += `- 회고: ${state.retro_path || "미작성"}\n`;
   if (state.status === "report_done" && !state.retro_path) {
     ctx += "- ⛔ 레포트는 나왔는데 회고가 없다 — `/retro` 를 먼저 실행하라 (SOUL §6).\n";
+  }
+  const _maxCyc = maxCommittedCycle();
+  if (typeof state.cycle === "number" && _maxCyc > state.cycle) {
+    ctx += `- ⚠️ **state 데싱크 의심**: state.cycle=${state.cycle} < 커밋된 log.md 최신 cycle=${_maxCyc}. ` +
+      "로컬 state가 뒤처졌을 수 있다(다른 컴퓨터 체크아웃) — 새 걸음 전 log.md·산출 폴더로 state 재구성 (CLAUDE §2-1).\n";
   }
   ctx += "→ 다음 걸음: status=debate → `/meeting-round` · consensus → scribe 레포트 · report_done → `/retro`.\n\n";
 } else {

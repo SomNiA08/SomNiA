@@ -70,6 +70,11 @@
   gitignore 대상 경로(state/ 등)를 add 인자에 넣지 마라 — 무시 경로는 커밋 세계에 존재하지 않는
   파일이고, 그 add 실패 하나가 확정 커밋을 통째로 삼킨 것이 실측된 실패 패턴이다.
   (v0.14 — 출처: academy-ops cycle 2 실패 3)
+- ⛔ **state.cycle이 커밋된 최신 record/retro·log.md가 함의하는 사이클보다 작은 채로 다음 걸음을 시작하지
+  마라.** 사이클 시작 커맨드(/meeting 등) 착수 전, 산출 폴더·log.md 마지막 `cycle N` 줄과 state.cycle을 대조해
+  데싱크면 재구성한다 — gitignored 로컬 state는 컴퓨터마다 뒤처질 수 있고, 뒤처진 번호로 진행하면 기존 사이클
+  산출을 덮는다. [승격 후보: session-start.mjs가 log.md 최신 cycle과 state.cycle 대조 → 불일치 시 재주입에 경고]
+  (v0.34 — 출처: ai-worklog cycle 4, retro/2026-07-08-retro.md 실패 C)
 
 ## 3. 절대 금지 — 권한 (에이전트별 스코프)
 
