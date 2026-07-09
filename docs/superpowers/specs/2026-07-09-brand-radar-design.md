@@ -57,13 +57,18 @@ SOUL.md · AGENTS.md · CLAUDE.md · 공용 `engine.mjs` · 회고 가드 · 역
 webtoon 하네스의 "대표 5장 카나리아 선검증 → 전량 렌더 → 검증-재생성 루프"를 이식한다.
 **전량 수집이 끝난 뒤에야 채널이 죽은 걸 아는 것**이 가장 비싼 실패다.
 
-1. **카나리아** — 채널마다 **1건씩만** 수집을 시도한다.
+1. **카나리아** — 수집 채널마다 **1건씩만** 수집을 시도한다 (`scout-open` ∥ `scout-social`).
    - 실패한 채널은 그 자리에서 `signals/<날짜>/FAILED.md`에 확정하고 본 수집에서 제외한다.
    - 시스템성 결함(로그인 만료·셀렉터 변경·레이트리밋)을 본 수집 **전에** 차단한다.
-2. **본 수집** — 살아남은 채널만 병렬 실행 (`scout-open` ∥ `scout-social` ∥ `format-analyst`).
-3. **종합** — `signal-synthesizer`가 `_inbox/` + 수집 결과 + `trend-tracker`의 시계열 대조를 합쳐
+   - `format-analyst`·`trend-tracker`는 채널이 아니라 **후행 분석기**다 — 카나리아 대상이 아니다.
+2. **본 수집** — 살아남은 채널만 병렬 실행 (`scout-open` ∥ `scout-social`).
+3. **후행 분석** — 스카우트 전원이 반환한 **뒤에** `format-analyst` ∥ `trend-tracker` 를 실행한다.
+   ⛔ `format-analyst` 를 스카우트와 병렬로 돌리지 마라 — 그 입력이 `signals/<날짜>/{open,social}.md`,
+   즉 **스카우트의 산출물**이다. 병렬로 돌리면 읽을 원문이 없어 `format-analysis.md` 가 비고,
+   큐의 `각도` 칸이 근거를 잃는다 — 이 에이전트를 둔 유일한 이유가 무효화된다.
+4. **종합** — `signal-synthesizer`가 `_inbox/` + 수집 결과 + `format-analysis.md` + `continuity.md` 를 합쳐
    `synthesis.md` 작성.
-4. **검증 루프** — `signal-validator`가 전수 검사 → **미달 항목만** 해당 수집기를 재호출.
+5. **검증 루프** — `signal-validator`가 전수 검사 → **미달 항목만** 해당 수집기를 재호출.
    - 최대 2회 재시도. 그래도 미달이면 항목을 폐기하고 **폐기 사실을 `synthesis.md`에 남긴다.**
    - 검증자는 종합자와 **반드시 다른 에이전트**다 (SOUL §5: 자기 산출물 자기 평가 금지).
 

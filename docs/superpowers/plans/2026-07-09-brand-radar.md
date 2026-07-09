@@ -1264,21 +1264,27 @@ argument-hint: [수집 대상 힌트 — 생략 시 AI/개발 + 이스포츠 전
    미등록이면 폴백은 하나뿐이다: general-purpose Worker에 해당 `.claude/agents/<name>.md`를
    브리프 최상단에서 Read시키고, 그 파일의 `tools:` 제한과 산출 경로를 브리프에 명시한다.
    미등록 발견은 `log.md`에 한 줄 남긴다.
-3. **카나리아** — `scout-open`·`scout-social`·`format-analyst` 를 `--canary` 모드로 실행한다.
+3. **카나리아** — `scout-open`·`scout-social` 을 `--canary` 모드로 실행한다.
    각자 대상 **1건**만 시도하고 성공/실패를 반환한다.
    - 실패한 채널은 즉시 `signals/<날짜>/FAILED.md` 에 사유와 함께 기록하고 **본 수집에서 제외**한다.
    - 전 채널 실패면 중단하고 사람에게 보고한다 (수집 없는 회의 금지).
+   - `format-analyst`·`trend-tracker` 는 채널이 아니라 **후행 분석기**다 — 카나리아 대상이 아니다.
 4. **본 수집** — 살아남은 채널만 **병렬 실행**(한 메시지에서 Agent 도구 다중 호출):
-   `scout-open` ∥ `scout-social` ∥ `format-analyst`.
-   그다음 `trend-tracker` 를 실행한다 (과거 `signals/` 시계열 대조).
-5. **걸음 경계 검사**: `node .claude/checks/step-diff.mjs signals/<날짜>/`
+   `scout-open` ∥ `scout-social`.
+5. **후행 분석** — 스카우트 전원이 반환한 **뒤에** `format-analyst` ∥ `trend-tracker` 를 병렬 실행한다.
+   - ⛔ `format-analyst` 를 스카우트와 병렬로 돌리지 마라. 그 입력이 `signals/<날짜>/{open,social}.md`,
+     즉 **스카우트의 산출물**이다. 병렬로 돌리면 읽을 원문이 없어 `format-analysis.md` 가 비고,
+     큐의 `각도` 칸이 근거를 잃는다 — 이 에이전트를 둔 유일한 이유가 무효화된다.
+   - `trend-tracker` 는 과거 `signals/` 시계열을 대조한다 (이번 수집 결과와 무관하게 돌 수 있으나,
+     `format-analyst` 와 함께 후행에 둔다).
+6. **걸음 경계 검사**: `node .claude/checks/step-diff.mjs signals/<날짜>/`
    exit 1이면 선언 밖 변경이 있는 것 — 되돌리고 재시도한다.
-6. **종합** — `signal-synthesizer` 실행 → `signals/<날짜>/synthesis.md`.
-7. **검증 루프** — `signal-validator` 실행 → `signals/<날짜>/validation.md`.
+7. **종합** — `signal-synthesizer` 실행 → `signals/<날짜>/synthesis.md`.
+8. **검증 루프** — `signal-validator` 실행 → `signals/<날짜>/validation.md`.
    - `VERDICT: REVISE` 면 지목된 미달 항목의 **해당 수집기만** 재호출한다.
    - **최대 2회.** 그래도 미달이면 그 항목을 폐기하고, 폐기 사실을 `synthesis.md` 에 남긴 뒤 진행한다
      (`VERDICT: EXHAUSTED`).
-8. `state/state.json` 저장 (Write — state/는 가변 계층):
+9. `state/state.json` 저장 (Write — state/는 가변 계층):
    ```json
    {
      "cycle": 1,
@@ -1291,9 +1297,9 @@ argument-hint: [수집 대상 힌트 — 생략 시 AI/개발 + 이스포츠 전
      "retro_path": null
    }
    ```
-9. `log.md`에 한 줄 append (Edit): `- <날짜> cycle N /scan 완료: 항목 X건(EXTRACTED a·INFERRED b) · 실패 채널 [...]`
-10. **커밋한다.** 걸음의 원자 단위는 산출 + 기록 + 커밋이다 (CLAUDE §2-1).
-11. 종료 보고: 신호 수·등급 분포·실패 채널·다음 걸음(`/meeting`).
+10. `log.md`에 한 줄 append (Edit): `- <날짜> cycle N /scan 완료: 항목 X건(EXTRACTED a·INFERRED b) · 실패 채널 [...]`
+11. **커밋한다.** 걸음의 원자 단위는 산출 + 기록 + 커밋이다 (CLAUDE §2-1).
+12. 종료 보고: 신호 수·등급 분포·실패 채널·다음 걸음(`/meeting`).
 
 ## 금지
 
