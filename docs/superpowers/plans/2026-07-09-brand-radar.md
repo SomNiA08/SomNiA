@@ -565,6 +565,35 @@ test("벽A: debate 전이가 아니면 검사하지 않는다", async () => {
   rmSync(root, { recursive: true, force: true });
 });
 
+test("벽A: MultiEdit 로도 우회할 수 없다 (edits[].new_string)", async () => {
+  const root = makeRoot([{ ...GOOD, metric: null }]); // metric 없는 EXTRACTED — 차단돼야 함
+  const data = {
+    tool_name: "MultiEdit",
+    tool_input: {
+      file_path: join(root, "state/state.json"),
+      edits: [{ old_string: '"status":"scanned"', new_string: '"status":"debate","signals_date":"2026-07-09"' }],
+    },
+  };
+  const r = await check(data, { cfg: CFG, root });
+  assert.match(String(r), /metric/);
+  rmSync(root, { recursive: true, force: true });
+});
+
+test("벽A: Edit 의 new_string 경로도 여전히 검사한다", async () => {
+  const root = makeRoot([{ ...GOOD, metric: null }]);
+  const data = {
+    tool_name: "Edit",
+    tool_input: {
+      file_path: join(root, "state/state.json"),
+      old_string: "x",
+      new_string: '{"status":"debate","signals_date":"2026-07-09"}',
+    },
+  };
+  const r = await check(data, { cfg: CFG, root });
+  assert.match(String(r), /metric/);
+  rmSync(root, { recursive: true, force: true });
+});
+
 test("벽B: state.json 셸 쓰기는 차단한다", async () => {
   const root = makeRoot([GOOD]);
   const data = { tool_name: "Bash", tool_input: { command: 'echo "{}" > state/state.json' } };
@@ -625,7 +654,7 @@ export async function check(data, ctx) {
 
     // 벽A — debate 전이 시 신호 스키마 검사
     if ((tool === "Write" || tool === "Edit" || tool === "MultiEdit") && /(^|\/)state\/state\.json$/.test(path)) {
-      const content = String(tool === "Write" ? ti.content || "" : ti.new_string || "");
+      const content = writtenContent(tool, ti);
       if (/"status"\s*:\s*"debate"/.test(content)) {
         const msg = guardSignals(content, root);
         if (msg) return msg;
@@ -689,12 +718,23 @@ function guardSignals(content, root) {
   }
 }
 
+// 도구가 실제로 파일에 쓰려는 내용을 꺼낸다.
+// ⚠️ MultiEdit 의 tool_input 에는 최상위 new_string 이 없다 — 내용은 edits[].new_string 에 있다.
+//    이걸 놓치면 MultiEdit 한 번으로 벽A 전체가 침묵한다(우회). ai-worklog 벽5a 에도 있던 같은 구멍.
+function writtenContent(tool, ti) {
+  if (tool === "Write") return String(ti.content || "");
+  if (Array.isArray(ti.edits)) return ti.edits.map((e) => String((e && e.new_string) || "")).join("\n");
+  return String(ti.new_string || "");
+}
+
 function matchField(s, key) {
   const m = String(s).match(new RegExp(`"${key}"\\s*:\\s*"([^"]+)"`));
   return m ? m[1] : null;
 }
 function todayFromState(s) { return matchField(s, "date"); }
 ```
+
+`writtenContent` 는 `edits` 배열이 있으면 그것을 우선한다 — `MultiEdit` 뿐 아니라 `edits` 를 쓰는 어떤 도구가 와도 내용을 놓치지 않는다.
 
 - [ ] **Step 4: 테스트 실행 — 전부 통과 확인**
 
@@ -703,7 +743,7 @@ BR="$(cd .. && pwd)/brand-radar"; cd "$BR"
 node --test "tests/*.test.mjs"
 ```
 
-Expected: `# pass 11` · `# fail 0`
+Expected: `# pass 13` · `# fail 0`
 
 - [ ] **Step 5: 엔진 경유 실측 (단위 테스트는 훅 배선을 증명하지 않는다)**
 
@@ -1499,7 +1539,7 @@ BR="$(cd .. && pwd)/brand-radar"; cd "$BR"
 node --test "tests/*.test.mjs"
 ```
 
-Expected: `# pass 11` · `# fail 0`
+Expected: `# pass 13` · `# fail 0`
 
 - [ ] **Step 4: engine.mjs 가 여전히 킷과 바이트 동일한지 재확인 (드리프트 감사)**
 
