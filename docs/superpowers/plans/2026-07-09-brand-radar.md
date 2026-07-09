@@ -359,7 +359,7 @@ test "$a" = "$b" && echo "OK CLAUDE.md ($a줄)" || { echo "MISMATCH"; exit 1; }
 |---|---|---|---|
 | 1 | `/scan` | `signals/<날짜>/` | `scanned` |
 | 2 | `/meeting` | 안건 + 기대값 | `debate` |
-| 3 | `/meeting-round` (N회) | `rounds/<날짜>/round-N-*.md` | `debate` |
+| 3 | `/meeting-round` (N회) | `rounds/<날짜>/round-N-*.md` | `debate` → 종결 시 `queue_ready` |
 | 4 | `/queue` | `topics/<날짜>-queue.md` | `report_done` |
 | 5 | `/retro` | `retro/<날짜>-retro.md` | `retro_done` |
 
@@ -1234,8 +1234,8 @@ git log -1 --format='%h %s'
 
 **Interfaces:**
 - Consumes: 에이전트 12 (Task 5·6·7) · 벽A (Task 4)
-- Produces: `state/state.json` 필드 — `{cycle, signals_date, agenda, acceptance, round, max_rounds, status, votes, queue_path, retro_path}`
-  - `status` 전이: `scanned` → `debate` → `report_done` → `retro_done`
+- Produces: `state/state.json` 필드 — `{cycle, signals_date, agenda, acceptance, round, max_rounds, status, votes, queue_path, retro_path}` (킷의 `report_path` 는 쓰지 않는다)
+  - `status` 전이: `scanned` → `debate` → `queue_ready` → `report_done` → `retro_done`
   - `signals_date`: 벽A가 읽는 필드. `/scan`이 설정한다.
 
 - [ ] **Step 1: /scan 커맨드 작성**
@@ -1346,6 +1346,33 @@ cp "$KIT/.claude/commands/retro.md"         "$BR/.claude/commands/retro.md"
 
 라운드 산출 경로를 `rounds/<날짜>/round-N-<agent>.md`로 고친다.
 
+**그리고 종결 전이를 떼어낸다 (핵심).** 킷의 절차 5는 합의 성립 또는 `round == max_rounds` 시
+`scribe` 를 불러 `report/<날짜>-<안건slug>.md` 를 쓰고 `status: "report_done"` 으로 전이한다.
+킷의 회의는 **레포트를 뽑는 것이 목적**이기 때문이다.
+
+이 하네스의 산출물은 레포트가 아니라 **주제 후보 큐**다. **산출을 만드는 걸음은 `/queue` 하나뿐이어야 한다.**
+떼어내지 않으면 회의가 **정상 종결되는 순간** `status` 가 `report_done` 이 되어 `/queue` 가 진입에서 막히고,
+stop 훅이 곧장 `/retro` 를 강제한다 — 유일한 산출물이 통째로 건너뛰어진다. **happy-path 가 곧 결함 경로다.**
+
+`meeting-round.md` 절차 5를 다음으로 교체한다:
+
+```markdown
+5. **moderator 집계**: 명시적 표기만 센다. 합의 = 전원 찬성, 또는 (전원-1) 찬성 + 1 조건부.
+   - **합의 성립** → `status: "queue_ready"`. 합의된 후보와 근거를 다음 걸음이 읽도록 라운드 파일에 남긴다.
+   - **합의 실패 & round < max_rounds** → `status: "debate"` 유지. 미해결 쟁점을 다음 어젠다로.
+   - **합의 실패 & round == max_rounds** → moderator가 미합의 쟁점을 Open Questions로 확정하고
+     `status: "queue_ready"`. (억지 합의 금지 — 미합의는 큐의 `반론` 칸에 실린다.)
+
+   ⛔ 이 커맨드에서 `scribe` 를 부르지 마라. ⛔ `report/` 를 만들지 마라. ⛔ `report_done` 으로 전이하지 마라.
+      산출과 그 전이는 `/queue` 의 일이다 (한 걸음 = 한 단계, SOUL §4).
+```
+
+절차 7(종료 보고)의 `report_done` 언급과 금지문의 `report_done` 언급도 `queue_ready` 로 맞추고,
+`status` 가 `queue_ready` 면 다음 걸음이 `/queue` 임을 안내한다.
+
+**state 필드명은 `queue_path` 로 통일한다.** 킷이 쓰는 `report_path` 는 이 하네스에 없다 —
+`meeting.md` 의 state 초기화와 `meeting-round.md` 의 기록에서 `report_path` 를 `queue_path` 로 바꾼다.
+
 - [ ] **Step 3: /queue 커맨드 작성**
 
 `$BR/.claude/commands/queue.md`:
@@ -1362,7 +1389,8 @@ argument-hint: (없음)
 
 ## 절차
 
-1. `state/state.json` 확인 — `status`가 `debate`가 아니면 안내 후 중단.
+1. `state/state.json` 확인 — `status`가 `queue_ready`가 아니면 안내 후 중단.
+   (`debate` 면 회의가 아직 안 끝난 것이다 — `/meeting-round` 를 더 돌려야 한다.)
 2. 최신 `rounds/<날짜>/round-N-devil.md` 의 `KILL:` 줄을 읽는다. KILL된 후보는 큐에서 제외한다.
 3. `scribe` 실행:
    - 입력: `rounds/<날짜>/` 전체 · `signals/<signals_date>/synthesis.md` · `signals/<signals_date>/continuity.md` ·
