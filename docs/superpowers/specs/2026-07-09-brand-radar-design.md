@@ -52,6 +52,33 @@ SOUL.md · AGENTS.md · CLAUDE.md · 공용 `engine.mjs` · 회고 가드 · 역
 
 각 걸음의 원자 단위는 **산출 + 기록(state/log) + 커밋**이다 (CLAUDE §2-1).
 
+### `/scan` 내부 절차 (카나리아 → 본 수집 → 검증 루프)
+
+webtoon 하네스의 "대표 5장 카나리아 선검증 → 전량 렌더 → 검증-재생성 루프"를 이식한다.
+**전량 수집이 끝난 뒤에야 채널이 죽은 걸 아는 것**이 가장 비싼 실패다.
+
+1. **카나리아** — 채널마다 **1건씩만** 수집을 시도한다.
+   - 실패한 채널은 그 자리에서 `signals/<날짜>/FAILED.md`에 확정하고 본 수집에서 제외한다.
+   - 시스템성 결함(로그인 만료·셀렉터 변경·레이트리밋)을 본 수집 **전에** 차단한다.
+2. **본 수집** — 살아남은 채널만 병렬 실행 (`scout-open` ∥ `scout-social` ∥ `format-analyst`).
+3. **종합** — `signal-synthesizer`가 `_inbox/` + 수집 결과 + `trend-tracker`의 시계열 대조를 합쳐
+   `synthesis.md` 작성.
+4. **검증 루프** — `signal-validator`가 전수 검사 → **미달 항목만** 해당 수집기를 재호출.
+   - 최대 2회 재시도. 그래도 미달이면 항목을 폐기하고 **폐기 사실을 `synthesis.md`에 남긴다.**
+   - 검증자는 종합자와 **반드시 다른 에이전트**다 (SOUL §5: 자기 산출물 자기 평가 금지).
+
+`project-walls.mjs`의 차단 벽(§3-6)은 이 루프의 **최후 방어선**이지 1차 방어선이 아니다.
+차단은 멈추는 것이지 고치는 것이 아니다 — 고치는 일은 검증 루프가 한다.
+
+### 부분 재실행
+
+webtoon의 `"패널 23번 다시 그려"` 방식. 전체 사이클 재시작 없이 허용한다:
+
+- `"링크드인만 다시 수집"` → 해당 채널의 수집기만 재호출, `signals/<날짜>/`에 **append**(덮어쓰기 아님).
+- `"이 후보만 재검토"` → 해당 후보만 `redsea-devil` 재심.
+
+부분 재실행도 산출·기록·커밋의 원자 단위를 지킨다.
+
 ### 불변 계층
 
 `signals/`는 `rounds/`와 동일한 **불변 계층**이다 (`harness.config.json`의 `immutableDirs`에 등록).
@@ -92,6 +119,37 @@ SOUL.md · AGENTS.md · CLAUDE.md · 공용 `engine.mjs` · 회고 가드 · 역
 - 에이전트가 아니라 폴더인 이유: 하네스가 못 보는 곳(비공개 커뮤니티, 디스코드, 지인 피드)을
   메우는 유일한 통로.
 
+### 3-3b. `format-analyst` — "왜 먹혔는가" 역설계
+
+webtoon 리서치팀의 `hook-analyst` 이식. 그 팀에는 "무엇이 뜨는가"를 보는 사람(`trend-scout`)과
+**"왜 먹혔는가"를 역설계하는 사람**(`hook-analyst`)이 따로 있다.
+
+이 하네스가 그것 없이는 **큐의 `각도` 칸을 근거로 채울 수 없다.** 없으면 각도는
+`panelist-voice`가 회의에서 지어내는 의견이지 관측이 아니다.
+
+- 입력: `scout-open`·`scout-social`이 건진 상위 신호의 **원문 게시물**.
+- 역설계 대상: 첫 3줄(훅) · 훅 문장의 형태(질문/수치/역설/고백) · 길이 · 포맷(스레드/단문/캐러셀/장문) ·
+  마무리(CTA/질문/여운) · 댓글이 붙는 지점.
+- 출력: `signals/<날짜>/format-analysis.md` — 신호 항목과 동일 스키마 + `mechanism` 칸
+  ("이 게시물이 붙잡은 독자 욕구 한 줄").
+- **과적합 금지** (webtoon `trend-scout` 작업 원칙 차용): 한 게시물은 사례일 뿐이다.
+  **반복되어야 패턴**이고, 반복 횟수를 명시하지 않은 패턴 주장은 잠정 플래그다.
+
+### 3-3c. `trend-tracker` — 시계열 대조 (이 스펙의 구멍이었던 곳)
+
+§2는 `signals/`를 불변 시계열로 쌓아야 "떠오르는 중"과 "이미 정점"을 구분할 수 있다고 적었으나,
+**그 시계열을 읽는 주체를 아무도 배치하지 않았다.** 쌓기만 하고 읽지 않으면 매 사이클이 첫 사이클이다.
+
+webtoon의 `continuity-manager`(회차를 넘어 설정·떡밥을 누적 추적)에 대응한다.
+
+- 입력: 직전 N개 사이클의 `signals/*/synthesis.md` (읽기 전용).
+- 출력: `signals/<날짜>/continuity.md` — 신호별 **라이프사이클 판정**: `신규` / `상승` / `정점` / `하락`.
+- 판정은 **관측 자체가 아니라 관측의 차분**이다. 따라서 등급은 **INFERRED**를 넘지 못한다.
+  (지표의 증감은 봤지만 "정점"은 해석이다 — AGENTS 62행, 승격 금지.)
+- 라이프사이클 판정에 임의 문턱(예: "2주 연속 증가하면 상승")을 쓰지 마라.
+  쓰려면 "어떤 관측이면 이 문턱을 바꾸는가"를 현 표본과 독립으로 답해야 한다 (AGENTS 63행).
+  답 못 하면 **잠정 플래그**로만 남긴다.
+
 ### 3-4. 막으려는 정확히 하나의 실패
 
 브라우저 수집이 실패했을 때 — 로그인이 풀렸든, 셀렉터가 바뀌었든 — 모델이 조용히 웹검색으로
@@ -112,6 +170,16 @@ SOUL.md · AGENTS.md · CLAUDE.md · 공용 `engine.mjs` · 회고 가드 · 역
 - 종합의 모든 트렌드 주장은 **"이 표본이 아닌 무엇을 보면 이 판단이 뒤집히는가"** 를 한 줄 단다.
 - 못 달면 **잠정 플래그**로만 표기된다.
 - **잠정 플래그는 회의에서 근거로 쓸 수 없다.**
+
+### 3-5b. `signal-validator` — 검증-재수집 루프
+
+webtoon `panel-validator`(6축 검증 → **기준 미달 패널만** 재생성) 이식.
+
+- `synthesis.md` 전수 검사. 축: `tier` · `observed_at` · `source` · `metric` 정합 · `falsifier` 유무 ·
+  `format-analyst` 패턴 주장의 반복 횟수 명시 여부.
+- 미달 항목만 해당 수집기를 재호출한다. 통과 항목은 건드리지 않는다.
+- 최대 2회 재시도, 이후 폐기 + 폐기 사실 기록.
+- **종합자와 다른 에이전트여야 한다** (SOUL §5).
 
 ### 3-6. 기계 강제 (문서만으로는 표류한다)
 
@@ -169,19 +237,39 @@ SOUL.md · AGENTS.md · CLAUDE.md · 공용 `engine.mjs` · 회고 가드 · 역
 
 ### 에이전트 tools 제한
 
-| 에이전트 | tools |
-|---|---|
-| `scout-open` | Read, Grep, Glob, Write, WebSearch, WebFetch |
-| `scout-social` | Read, Write, `mcp__claude-in-chrome__*` |
-| `signal-synthesizer` | Read, Grep, Glob, Write |
-| `moderator` | Read, Grep, Glob, Write, Edit |
-| `panelist-audience` | Read, Grep, Glob, Write |
-| `panelist-voice` | Read, Grep, Glob, Write |
-| `redsea-devil` | Read, Grep, Glob, Write |
-| `scribe` | Read, Grep, Glob, Write, Edit |
-| `retrospector` | Read, Grep, Glob, Write (`retro/`로만) |
+| 에이전트 | 역할 | tools |
+|---|---|---|
+| `scout-open` | 공개 소스 수집 | Read, Grep, Glob, Write, WebSearch, WebFetch |
+| `scout-social` | 로그인 벽 수집 | Read, Write, `mcp__claude-in-chrome__*` |
+| `format-analyst` | "왜 먹혔는가" 역설계 | Read, Grep, Glob, Write, WebFetch |
+| `trend-tracker` | 시계열 라이프사이클 판정 | Read, Grep, Glob, Write |
+| `signal-synthesizer` | 종합 | Read, Grep, Glob, Write |
+| `signal-validator` | 검증-재수집 게이트키퍼 | Read, Grep, Glob, Write |
+| `moderator` | 의장 | Read, Grep, Glob, Write, Edit |
+| `panelist-audience` | 독자 관점 | Read, Grep, Glob, Write |
+| `panelist-voice` | 축 정합 | Read, Grep, Glob, Write |
+| `redsea-devil` | 악마의 변호인 | Read, Grep, Glob, Write |
+| `scribe` | 큐 작성 | Read, Grep, Glob, Write, Edit |
+| `retrospector` | 회고 | Read, Grep, Glob, Write (`retro/`로만) |
+
+수집기 넷(`scout-open` ∥ `scout-social` ∥ `format-analyst` ∥ `trend-tracker`) → 종합 1명 →
+검증 1명 구조는 webtoon 리서치팀("4명 조사 → 1명 종합")의 이식이다.
+차이: webtoon은 **조사 축**으로 나누고, 여기서는 **수집 채널**로 나눈다 — 등급이 채널에 묶여 있기
+때문(§3). `format-analyst`·`trend-tracker`만 축으로 나뉜 예외다.
 
 모델 배선은 `MODELS.md` 단일 원천을 따른다 (하드코딩 금지).
+
+### 의도적으로 이식하지 않은 것 — 축 주입
+
+webtoon은 스타일 바이블·일관성 토큰을 **모든 프롬프트에 주입**해 일관성을 강제한다.
+같은 식으로 `wiki/axis.md`를 수집기에게도 주입하고 싶은 유혹이 있으나 **거부한다.**
+
+주입하면 수집기가 **축에 맞는 신호만 주워 온다** — 확증편향이 파이프라인 최상류에 박힌다.
+그러면 회의는 이미 축에 맞게 걸러진 신호를 놓고 "축에 맞나"를 논하게 되어 아무것도 검증하지 못한다.
+
+> ⛔ **수집기(`scout-*`·`format-analyst`·`trend-tracker`)에게 `wiki/axis.md`를 읽히지 마라.**
+> 수집은 축에 대해 눈이 멀어야 하고, 축은 회의에서만 적용된다.
+> 렌더는 일관성이 미덕이지만 관측은 아니다.
 
 ---
 
@@ -192,11 +280,14 @@ SOUL.md · AGENTS.md · CLAUDE.md · 공용 `engine.mjs` · 회고 가드 · 역
 | 칸 | 내용 |
 |---|---|
 | **주제** | 술어형 한 줄 ("X 하면 Y 한다") |
-| **각도** | 이 축에서만 보이는 지점 한 줄 |
+| **각도** | 이 축에서만 보이는 지점 한 줄 + `format-analysis.md`의 `mechanism` 인용 |
 | **근거** | `signals/` 항목 ID + 등급 + 관측일자 (인용) |
+| **국면** | `continuity.md`의 라이프사이클 판정 (`신규`/`상승`/`정점`/`하락`) |
 | **반론** | 악마가 찌른 것 + 살아남은 리스크 |
 | **기대값** | 이 글을 올렸을 때 **어떤 관찰이면 먹혔다고 판정하는가** |
 
+- **각도 칸의 효과**: `format-analyst`의 관측에 묶이므로, 각도가 의견이 아니라 근거를 갖는다.
+- **국면 칸의 효과**: `정점`·`하락` 신호를 근거로 삼은 후보는 얼굴에 드러난다 — 늦게 도착한 주제다.
 - **근거 칸의 효과**: INFERRED만 붙은 후보는 그 사실이 얼굴에 드러난다.
 - **기대값 칸의 효과**: 쓰기 **전에** 적는다. AGENTS §3("결과 보고 기대값 정하지 마라")을 주제 단위로 내린 것.
 - **후보는 많아야 다섯.** 열 개짜리 큐는 고르는 비용이 쓰는 비용을 넘어서 아무것도 안 쓰게 만든다.
@@ -224,6 +315,10 @@ SOUL.md · AGENTS.md · CLAUDE.md · 공용 `engine.mjs` · 회고 가드 · 역
 - **포지셔닝 결정 권한**: §1의 축 상수 벽 참조.
 - **리서치 프리미티브의 킷 역이식**: 아직 한 번도 안 돌려본 절차를 공통 자산에 넣지 않는다.
   `brand-radar`로 몇 사이클 돌려 안정화된 뒤 `/retro`의 역이식 경로로 올린다.
+- **수집기에 대한 축 주입** (webtoon 스타일 바이블 방식): §4의 확증편향 벽 참조.
+- **오케스트레이터 스킬 진입점** (webtoon `webtoon-orchestrator`): 킷은 커맨드가 걸음을 나누고,
+  한 커맨드 = 한 걸음이다 (SOUL §4). 자연어 한 마디로 전 파이프라인을 도는 진입점은 이 규율과 충돌한다.
+- **대규모 에이전트 팀** (webtoon 27명): 이 하네스의 사이클은 다섯 걸음이다. 에이전트 12명으로 족하다.
 
 ---
 
@@ -233,3 +328,11 @@ SOUL.md · AGENTS.md · CLAUDE.md · 공용 `engine.mjs` · 회고 가드 · 역
   "조용한 실패"를 "시끄러운 실패"로 바꾸지만, 깨지는 빈도 자체는 첫 몇 사이클의 관측 대상이다.
 - **`_inbox/` 고갈**: 사람이 안 채우면 소셜 신호의 폭이 좁아진다. §6의 3사이클 지적이
   이 신호도 함께 잡도록 회고 체크리스트에 포함한다.
+- **`trend-tracker`의 콜드 스타트**: 1~2 사이클째에는 대조할 시계열이 없어 모든 신호가 `신규`다.
+  이때 `국면` 칸은 정보가 없는 칸이며, **없는 정보를 있는 것처럼 쓰지 않도록** 3사이클 이전에는
+  `데이터 부족`으로 표기한다.
+- **`format-analyst`의 과적합**: 원문 게시물 표본이 적으면 한 게시물의 특이 포맷을 패턴으로
+  오인한다. §3-3b의 "반복 횟수 명시" 규칙이 1차 방어이나, 실제 표본 크기는 첫 몇 사이클의
+  관측 대상이다.
+- **검증 루프의 무한 재시도**: `signal-validator` ↔ 수집기 왕복이 비용을 태울 수 있다.
+  최대 2회 상한이 그 벽이며, 상한에 자주 닿으면 그것 자체가 채널 건강의 신호다.
