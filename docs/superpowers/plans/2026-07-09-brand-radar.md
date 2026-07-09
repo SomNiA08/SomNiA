@@ -8,6 +8,9 @@
 
 **Tech Stack:** Node.js (훅 · `.mjs`, ESM) · `node:test` 내장 러너 · git · Claude Code 커맨드/에이전트 마크다운
 
+> 테스트 실행은 반드시 `node --test "tests/*.test.mjs"` (글롭 형태). Node v26 + Git Bash 조합에서
+> `node --test tests/` (디렉토리 형태)는 `tests` 를 테스트 파일로 오인해 `'test failed'` 로 죽는다 — 실측 확인됨.
+
 ## Global Constraints
 
 스펙(`docs/superpowers/specs/2026-07-09-brand-radar-design.md`)의 프로젝트 전역 요구사항. 모든 태스크에 암묵 적용된다.
@@ -586,7 +589,7 @@ test("훅은 절대 throw 하지 않는다 — 깨진 입력도 통과", async (
 
 ```bash
 BR="$(cd .. && pwd)/brand-radar"; cd "$BR"
-node --test tests/
+node --test "tests/*.test.mjs"
 ```
 
 Expected: FAIL — `Cannot find module '../.claude/hooks/project-walls.mjs'`
@@ -697,7 +700,7 @@ function todayFromState(s) { return matchField(s, "date"); }
 
 ```bash
 BR="$(cd .. && pwd)/brand-radar"; cd "$BR"
-node --test tests/
+node --test "tests/*.test.mjs"
 ```
 
 Expected: `# pass 11` · `# fail 0`
@@ -1493,7 +1496,7 @@ Expected: 모든 줄이 `✅`, 마지막 줄 `SMOKE: 전부 통과`, exit 0.
 
 ```bash
 BR="$(cd .. && pwd)/brand-radar"; cd "$BR"
-node --test tests/
+node --test "tests/*.test.mjs"
 ```
 
 Expected: `# pass 11` · `# fail 0`
