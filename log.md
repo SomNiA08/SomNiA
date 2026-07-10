@@ -21,3 +21,6 @@
 - 2026-07-07 v0.29 engine 벽2 대소문자 우회 봉합 (Fable 검수) — soul.md·Rounds/ 케이스 변형으로 보호파일 덮어쓰기가 벽을 통과하던 구멍, `i` 플래그 5곳 전면 적용. 차단8·통과6 재검증, 4리포 해시 재단일 17D8ADEE5EE6. W3 리팩터링에 LoL v0.5 수정이 누락됐던 회귀 (상세 CHANGELOG)
 - 2026-07-07 v0.30 stop-retro-guard sentinel 사이클 결속 (Fable 검수 2차) — 포기된 사이클의 sentinel이 다음 사이클 가드를 선제 무력화하던 구멍 봉합(LoL v0.5 "cycle 단위 리셋" 역이식), 격리 실측 7케이스 전부 일치, sam·invest-desk·ai-worklog 전파 4벌 해시 82E3947A84D9 (상세 CHANGELOG)
 - 2026-07-07 v0.31 MODELS.md 별칭 세대교체 벽 (Fable 검수 2차) — 별칭 자동 승급이 캘리브레이션 벽과 모순되는 사각 봉합: 새 세대 해석 시작일 = 새 모델 첫날, 캘리브레이션 통과 전 판정·생산-외부발행 사이클 금지. 4리포 전파(LoL 포함) 5벌 해시 7FBB41DD1F74 (상세 CHANGELOG)
+- 2026-07-07 [소급 기록] v0.32 LoL cycle 1 회고 역이식 수신 (커밋 3f9f10a): AGENTS §3 "소표본 임의 문턱 금지". 전파는 "다음 동기화 시"로 남겨져 3일간 미이행 — 2026-07-10 검수가 적발, 같은 날 4리포 전파 완료
+- 2026-07-08 [소급 기록] v0.33~v0.35 ai-worklog cycle 4 역이식 수신 (커밋 f1c4cef·6daf490): engine truncRedirect `;` 오탐 봉합(공유 파일 — 전파됨) + CLAUDE §2-1 데싱크 벽·session-start 검사(v0.34) + retro.md 승격 이행 추적(v0.35). v0.34·v0.35는 공유 9파일 밖이라 sam·invest-desk·LoL 미전파로 남아 있었음 (2026-07-10 해소)
+- 2026-07-10 v0.36 킷 탐색 다중 일치 중단 + 전파 감시 기계화 (3차 함대 검수): retro.md 금지 신설(일치 2개 이상이면 중단·보고) + 허브 fleet-sync.ps1 킷 탐색 exit 1 중단 + "킷 공통 벽 전파" 앵커 grep 점검 신설. 실측: 수리 전 "킷(정본)=LoL·드리프트 12건"(거짓) → 수리 후 "킷=haeness-kit·드리프트 0". 전파 GAP 첫 실행 sam4·invest4·worklog2·LoL1 → 전건 해소 (상세 CHANGELOG)
