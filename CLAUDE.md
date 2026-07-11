@@ -75,6 +75,12 @@
   데싱크면 재구성한다 — gitignored 로컬 state는 컴퓨터마다 뒤처질 수 있고, 뒤처진 번호로 진행하면 기존 사이클
   산출을 덮는다. [승격 후보: session-start.mjs가 log.md 최신 cycle과 state.cycle 대조 → 불일치 시 재주입에 경고]
   (v0.34 — 출처: ai-worklog cycle 4, retro/2026-07-08-retro.md 실패 C)
+  **[승격 이행됨: `.claude/hooks/session-start.mjs`의 `findUnloggedOutputs()` — 커밋된 `report/`(파생
+  리포는 자체 `docs/` 등 확장) 산출 폴더가 log.md에 언급 없으면 다음 세션 시작 시 WARN, state.json
+  유무와 무관하게 항상 실행.]** 이 벽은 state.cycle↔log.md 대조라 log.md를 아예 안 건드린 채 산출만
+  커밋되는 사건은 못 잡았다(원 사건: academy-ops 2026-07-08, 교안이 log·state 무접촉으로 생산돼 4일간
+  미결이 아무 경고 없이 방치됨) — 검출 없는 금지문은 불순종을 스스로 못 잡는다는 것이 재확인됐다.
+  (v0.39 — 출처: academy-ops retro/2026-07-12-cycle3-retro.md 개정안 1, 사람 승인 2026-07-12)
 
 ## 3. 절대 금지 — 권한 (에이전트별 스코프)
 

@@ -3,6 +3,20 @@
 역이식의 착지점이다. `/retro`에서 승인된 개정은 반드시 여기에 한 항목씩 쌓인다.
 형식: `## vX.Y — YYYY-MM-DD · <출처 프로젝트>` + 변경 내용 + 근거(회고 경로).
 
+## v0.39 — 2026-07-12 · academy-ops (sam cycle 3)
+- **근거**: `academy-ops(sam)/retro/2026-07-12-cycle3-retro.md` 개정안 1 — 사람 승인 2026-07-12, 범위 킷 공통(예비).
+- **v0.39** `.claude/hooks/session-start.mjs` — `findUnloggedOutputs()` 신설: 커밋된 `report/` 산출 폴더가
+  `log.md`에 언급 없으면 다음 세션 시작 시 WARN. `CLAUDE.md` §2-1 v0.34 벽은 state.cycle↔log.md 데싱크만
+  봐서, log.md를 아예 안 건드린 채 산출만 커밋되는 사건(원 사건: academy-ops 2026-07-08 — 교안 산출이
+  log·state 무접촉으로 생산돼 4일간 미결이 사람 손 함대 검수 전까지 아무 경고 없이 방치)은 못 잡았다 —
+  검출 없는 금지문은 불순종을 스스로 못 잡는다는 메타패턴(cycle 1 실패 4의 거울상)이 재확인됐다.
+  state.json이 아예 없는 세션(첫 체크아웃 등, 바로 이 사건이 가장 흔히 남는 자리)에서도 검사가 돌도록
+  `if(state)` 블록 밖에 둔다 — academy-ops 최초 구현이 이 자기모순을 회귀 테스트로 실측해 즉시 고쳤다.
+  `docs/`는 킷 원본 파이프라인에 없어 검사 대상에서 뺐다(리포 루트의 도구성 `docs/superpowers/` 등
+  하네스 무관 폴더 오탐 실측) — `docs/`를 실제로 쓰는 파생 리포는 자기 훅에서 배열을 확장해 이식한다
+  (academy-ops가 실증). `retro/`도 검사하지 않는다 — 파생 리포 관행상 log.md가 회고를 "cycle N 회고
+  완료"로만 적고 파일명을 인용하지 않아 오탐이었다(academy-ops 실측: 3건 전건 오탐).
+
 ## v0.37~v0.38 — 2026-07-12 · somnia-hub (fleet-ops cycle 1)
 - **근거**: `somnia-hub/retro/2026-07-12-retro.md` (실패 4·5·6 + 메타관측 1) · 사용자 승인 7/7, 범위는 retrospector 제안대로(킷 공통 5 · 프로젝트 전용 2 — 전용 2건은 킷에 넣지 않음).
 - **v0.37** `.claude/commands/retro.md` §금지 — ⛔ 사건 장부가 비었거나 훅 deny만 있다는 이유로 "실패 없음"으로 회고를 닫지 마라. 장부는 훅이 본 층만 기록한다(에이전트 산출물 규약 위반·게이트 범위 밖 결함·커맨드 스펙 누락·절차 출처 오염은 안 남는다). retrospector 브리프에 장부와 함께 (a) 에이전트 반환 메시지 원문 (b) REVISE 발동/미발동 이력 (c) 판정이 "공백·측정 불가·약한 PASS"로 표기한 칸 목록을 넘긴다. 실측: cycle 1 실패 4건 중 장부 적재 0건. [승격 후보: state/step-notes.jsonl]

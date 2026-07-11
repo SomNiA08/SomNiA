@@ -6,7 +6,7 @@
 // 출처: gec-prd session-start.mjs 포팅 (회의형 상태 모델로 개조)
 // =====================================================================
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
@@ -30,6 +30,33 @@ function maxCommittedCycle() {
   let mx = 0;
   for (const m of log.matchAll(/\bcycle\s+(\d+)\b/gi)) { const n = parseInt(m[1], 10); if (n > mx) mx = n; }
   return mx;
+}
+// docs/·report/ 산출 vs log.md 대조 — 커밋된 산출 폴더는 있는데 log.md가 그 이름을 언급하지 않으면
+// "상태 기계 밖 산출"의 흔적이다. v0.34는 state.cycle↔log.md 데싱크만 봐서, log.md를 아예 안 건드린
+// 채 산출만 커밋되는 사건(원 실패: academy-ops 2026-07-08 — 교안 산출이 log·state 무접촉으로 생산)은
+// 못 잡았다 — 검출 없이 금지문만 있으면 불순종을 스스로 못 잡는다. retro/ 는 파생 리포 관행상 log.md가
+// 회고를 "cycle N 회고 완료"로만 적고 파일명을 인용하지 않아(academy-ops 실측: 전건 오탐) 검사 대상에서
+// 제외한다. 한계: 폴더명이 log.md 본문에 부분 문자열로 언급된다는 관행에 기댄 근사 검사 — WARN이지
+// 차단 아님. 산출 폴더 목록은 프로젝트마다 다를 수 있어 harness.config.json 이식은 다음 캘리브레이션 후보.
+function findUnloggedOutputs() {
+  const log = read("log.md");
+  // 킷 원본 파이프라인(AGENTS.md)은 report/ 만 산출한다 — docs/ 는 넣지 않는다. 리포 루트에
+  // docs/superpowers/(plans·specs) 같은 하네스 무관 도구 폴더가 있을 수 있고, 여기 dirs에 "docs"를
+  // 넣으면 그걸 오탐으로 잡는다(2026-07-12 실측: 첫 구현이 docs/superpowers/를 오탐). docs/ 를 실제로
+  // 쓰는 파생 리포(예: academy-ops)는 자기 session-start.mjs에서 이 배열을 확장해 이식한다.
+  const dirs = ["report"];
+  const unlogged = [];
+  for (const d of dirs) {
+    const p = join(root, d);
+    if (!existsSync(p)) continue;
+    let entries;
+    try { entries = readdirSync(p, { withFileTypes: true }); } catch { continue; }
+    for (const e of entries) {
+      if (!e.isDirectory()) continue;
+      if (!log.includes(e.name)) unlogged.push(`${d}/${e.name}/`);
+    }
+  }
+  return unlogged;
 }
 
 let ctx = "# 🎯 하네스 재주입 (SessionStart 자동 실행)\n\n";
@@ -62,6 +89,16 @@ if (state) {
   ctx += "→ 다음 걸음: status=debate → `/meeting-round` · consensus → scribe 레포트 · report_done → `/retro`.\n\n";
 } else {
   ctx += "## 회의 상태 없음 — `/meeting <안건>` 으로 새 사이클을 시작하라.\n\n";
+}
+
+// 2-1) 상태 기계 밖 산출 검출 — state 유무와 무관하게 항상 돈다. state.json이 아예 없는 컴퓨터·세션이
+// 바로 그 실패(사이클을 안 열고 산출만 냄)가 가장 흔히 남는 자리라, if(state) 안에 가두면 이 검사가
+// 겨냥한 사건을 스스로 놓친다(academy-ops v0.15 최초 구현에서 실측된 자기모순 — 고쳐서 이식).
+const _unlogged = findUnloggedOutputs();
+if (_unlogged.length) {
+  ctx += `## ⛔ 상태 기계 밖 산출 의심\n커밋된 산출 ${_unlogged.length}건이 log.md에 언급이 없다 — ` +
+    _unlogged.join(" · ") + ". 커맨드 밖에서 만들어졌을 수 있다(CLAUDE §2-1) — 확정 판정표·log.md " +
+    "기록·회고가 따라왔는지 먼저 확인하라.\n\n";
 }
 
 // 3) 위키 진입점 (지금까지 아는 것)
