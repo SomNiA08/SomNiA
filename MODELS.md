@@ -40,6 +40,17 @@
    (그 에이전트가 속한 역할군의 값). frontmatter에 `model:`이 없으면 세션 기본 모델을 상속한다.
 2. 하드코딩된 모델 참조(예: `.claude/rules/execution-model.md`)는 이 표를 가리키게만 두고 값은 중복하지 않는다.
 3. 모델 교체 시: **이 표만 고치고**, 1번을 다시 훑어 frontmatter 값을 새 표에 맞춘다.
+4. **폴백 세션(미등록 에이전트 → `general-purpose` 대행 · CLAUDE §3 v0.12)에서는 1번의 frontmatter를
+   아무도 읽지 않는다** — frontmatter가 이 표의 **유일한 집행 경로**이므로, 폴백에서는 배치값을 사람/모델이
+   손으로 재현해야 한다:
+   - ⛔ **폴백 호출에서 `model:`을 빠뜨리지 마라.** 미등록 에이전트를 `general-purpose`로 대행할 때 복원해야 할
+     것은 `tools:`(권한 상한)·산출 경로뿐이 아니다 — **`model:`(MODELS.md 배치)이 함께 복원되지 않으면 배치표는
+     세션 기본 모델로 조용히 붕괴한다**(frontmatter가 MODELS.md의 유일한 집행 경로이고, 폴백에서는 그것을
+     아무도 읽지 않는다). 폴백 호출은 Agent 도구의 model 파라미터에 그 에이전트의 역할군 값을 **명시**하고,
+     그 사실을 log.md에 남긴다.
+     [승격 후보: 폴백 절차를 **체크리스트로 박제** — ① frontmatter Read ② `tools:` 복원 ③ **`model:` 복원**
+     ④ 산출 경로 ⑤ 죽은 훅 목록 선언(CLAUDE §4 v0.40의 승격 후보 ③과 한 걸음). 각 항목의 이행을 log.md 한 줄에 기록]
+     (v0.41 — 출처: ai-worklog cycle 5, retro/2026-07-12-retro-cycle5.md 실패 6)
 
 ## 캘리브레이션 (새 모델 첫 사이클)
 
