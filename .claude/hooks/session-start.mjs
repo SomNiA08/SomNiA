@@ -8,6 +8,7 @@
 
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { appendHeartbeat } from "./ledger.mjs";
 
 const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const read = (f) => {
@@ -103,6 +104,14 @@ if (_unlogged.length) {
 
 // 3) 위키 진입점 (지금까지 아는 것)
 if (wikiIndex) ctx += "## 위키 진입점 (wiki/index.md)\n\n" + wikiIndex + "\n";
+
+// 4) 사건 장부 heartbeat — 세션 개시 1줄 (킷 CLAUDE §4 v0.40 승격 후보 ① 이행).
+// 이것이 "훅이 돌았다"의 유일한 기계 증거다: heartbeat 없는 빈 장부는 무사고가 아니라 관측 부재다
+// (폴백 세션에서는 훅 4종이 전부 죽는다 — CLAUDE §4 · SOUL §1 "부재는 증명한 뒤에만").
+// ⛔ throw 금지 — 장부 실패가 재주입을 막아선 안 된다 (appendIncident가 내부에서 전부 삼킨다).
+try {
+  appendHeartbeat(root, { cycle: state?.cycle ?? null, status: state?.status ?? null });
+} catch { /* 장부 실패는 벽·재주입을 막지 않는다 */ }
 
 process.stdout.write(JSON.stringify({
   hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: ctx },
