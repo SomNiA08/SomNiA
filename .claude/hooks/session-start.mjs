@@ -29,7 +29,12 @@ function maxCommittedCycle() {
   const log = read("log.md");
   if (!log) return 0;
   let mx = 0;
-  for (const m of log.matchAll(/\bcycle\s+(\d+)\b/gi)) { const n = parseInt(m[1], 10); if (n > mx) mx = n; }
+  // 걸음 줄("- YYYY-MM-DD cycle N …" — 날짜 직후 cycle)만 센다. 전문 평면 매칭은 산문 언급(로드맵
+  // "P0=cycle 2 가동" · 타 리포 사이클 수신 기록 · "회고 cycle N 추적" 메모)까지 세어 매 세션 거짓
+  // 데싱크 경고를 냈다 (2026-07-17 LoL·somnia-hub 실측 오탐 — 오탐은 산출물이 아니라 검출기를 고친다).
+  // 알려진 한계: 줄꼬리 언급(예: "… · cycle N briefed")은 세지 않는다 — 사이클 시작 전 log.md 수동
+  // 대조(v0.34 원문 절차)가 바닥을 계속 담당한다.
+  for (const m of log.matchAll(/^-\s+\d{4}-\d{2}-\d{2}\s+cycle\s+(\d+)\b/gim)) { const n = parseInt(m[1], 10); if (n > mx) mx = n; }
   return mx;
 }
 // docs/·report/ 산출 vs log.md 대조 — 커밋된 산출 폴더는 있는데 log.md가 그 이름을 언급하지 않으면
