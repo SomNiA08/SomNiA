@@ -3,6 +3,17 @@
 역이식의 착지점이다. `/retro`에서 승인된 개정은 반드시 여기에 한 항목씩 쌓인다.
 형식: `## vX.Y — YYYY-MM-DD · <출처 프로젝트>` + 변경 내용 + 근거(회고 경로).
 
+## v0.52 — 2026-07-19 · 함대 전수 검수 발원 (사용자 승인 "전부 진행") — hooks-alive 킷 승격·전파
+- **[공통·검사 신설] `.claude/checks/hooks-alive.mjs`** (CLAUDE §4 v0.40 승격 후보 ② + v0.47 "가장 싼 형태" 이행):
+  ai-worklog 단독 존재하던 훅 4종 생존 판정기를 킷으로 역이식·범용화(worklog 전용 문구 → 리포 중립).
+  판정 = 정적 배선(선언·실재 4/4) + 환경 신호(CLAUDE_PROJECT_DIR) + 장부 신선도(F1 cycle 대조 · F2 회고 mtime ·
+  verify 줄 제외) + /retro 절차 6 장부 비우기 이행 검사. exit 0=ALIVE · 1=DEAD(폴백 규약 강제) · 2=UNCONFIRMED.
+- 전파: sam · invest-desk · brand-radar · somnia-hub 동시 배치 — 5벌 해시 동일(2B683AB17A82). ai-worklog는
+  원본(spec-check 참조 전용판) 유지. LoL은 v0.8 구조(engine/checks 부재)라 대상 외.
+- 검증: 킷에서 실행 — 루트 세션을 "DEAD(관측 부재)" 정확 판정(exit 1) + 낡은 heartbeat 2줄 검출. throw 없음.
+- 잔여(별도 걸음): 각 커맨드 md "절차 0" 호출 배선 — 커맨드 셸 블록 벽 매트릭스 실측(v0.38 벽)과 한 걸음으로.
+- 근거: 2026-07-19 함대 전수 검수 (audit 7항 PASS · fleet-sync GAP 0 상태에서의 정성 검수 — 산문 벽 → 코드 승격 지연이 함대 최대 약점 판정)
+
 ## v0.51 — 2026-07-17 · LoL 검수 발원 (사용자 지시 "훅 수정 먼저") — session-start 데싱크 검출기 오탐 봉합
 - **[공통·훅 수선] `session-start.mjs` `maxCommittedCycle()` 걸음 앵커**: 기존 `/\bcycle\s+(\d+)\b/gi`는
   log.md 전문 평면 매칭이라 산문 언급까지 세었다 — LoL은 로드맵 산문("P0=cycle 2 가동")으로, somnia-hub는

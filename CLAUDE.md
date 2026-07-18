@@ -159,7 +159,7 @@
   [승격 후보 ① `ledger.mjs` heartbeat: `session-start`가 장부에 세션 개시 1줄(`{"kind":"session-start", ...}`)을
   남긴다 — 그러면 **"사고 0"(heartbeat 있음 · 사건 0)과 "훅 미작동"(파일 완전히 빔)이 기계적으로 구별된다.**
   현재는 두 상태가 **같은 빈 파일**이다. (⚠ `ledger.mjs`는 전 함대 바이트 동일·해시 감사 대상 — 이 승격은
-  함대 전파를 동반해야 한다) ② `checks/hooks-alive.mjs` 신설: `CLAUDE_PROJECT_DIR`(또는 `settings.json`
+  함대 전파를 동반해야 한다) **[① 이행됨: ledger.mjs v2 heartbeat — 전 함대 해시 단일]** ② `checks/hooks-alive.mjs` 신설: `CLAUDE_PROJECT_DIR`(또는 `settings.json`
   로드 흔적)를 이 리포와 대조해 훅 생존을 판정 — 각 커맨드 절차 1이 이것을 먼저 부르고, 미로드면 죽은 벽
   목록을 출력한다. ③ v0.12 폴백 규약 본문에 ①②를 절차로 박제 (폴백 = 에이전트 복구 + **훅 부재 선언** 두 걸음)]
   (v0.40 — 출처: ai-worklog cycle 5, retro/2026-07-12-retro-cycle5.md 실패 1)
@@ -197,7 +197,10 @@
   **이것은 v0.40 승격 후보 ①(`ledger heartbeat`)의 첫 실전 판정이다** — heartbeat는 "빈 장부 = 무사고 / 훅 미작동"의
   모호성을 **없앤 게 아니라 자리를 옮겼다**: 이제 둘은 **같은 1줄 파일**이고, 구별하는 것은 그 줄의 `cycle` 필드뿐이다.
   ⚠ `ledger.mjs`는 전 함대 바이트 동일·해시 감사 대상 — 이 판독 규칙(주석)의 개정은 **함대 전파를 동반해야 한다**.
-  [승격 후보: `checks/hooks-alive.mjs`(§4 v0.40 승격 후보 ②)를 **가장 싼 형태로** — ① 장부의 마지막 heartbeat의
+  [승격 후보 → **이행됨 2026-07-19**: `.claude/checks/hooks-alive.mjs` 킷 배치(원본 ai-worklog 역이식·범용화) +
+  sam·invest-desk·brand-radar·somnia-hub 동시 전파(해시 동일 5벌 · LoL은 v0.8 구조라 대상 외). 아래 ①③④ 포함
+  구현 — 잔여: ② "각 커맨드 절차 0이 호출" 배선은 커맨드 md 개정이라 벽 매트릭스 실측과 함께 별도 걸음.]
+  [원문: `checks/hooks-alive.mjs`(§4 v0.40 승격 후보 ②)를 **가장 싼 형태로** — ① 장부의 마지막 heartbeat의
   `cycle`을 `state.cycle`과 대조 → 불일치·부재면 "훅 미작동" 출력 ② 각 커맨드 절차 0이 이것을 호출 ③ 같은
   스크립트가 `/retro` 절차 6의 **장부 비우기 이행**도 검사(비어 있지 않은 채 `retro_done` 전이 시 경고)
   ④ `appendHeartbeat`에 `verify` 플래그. **승격이 다음 승격의 입력을 만든 첫 사례다** — 재료는 이미 장부에 있다]
